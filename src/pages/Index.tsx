@@ -40,7 +40,7 @@ const Index = () => {
           <img 
             src="/lovable-uploads/2479f755-5efa-474f-b6f7-1c4d6feaa479.png"
             alt="Today I Need" 
-            className="h-12 object-contain"
+            className="h-48 object-contain"
           />
           {activeTab !== "about" && (
             <Button
