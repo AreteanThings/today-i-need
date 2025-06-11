@@ -17,7 +17,7 @@ const About = () => {
             <img 
               src="/lovable-uploads/bae64307-21c6-471a-abe3-0199417df977.png" 
               alt="Aretean Things Logo" 
-              className="max-w-full h-auto"
+              className="max-w-full h-auto w-3/4"
             />
           </div>
           
