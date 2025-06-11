@@ -36,8 +36,8 @@ const Index = () => {
     <div className="min-h-screen bg-background">
       <div className="max-w-md mx-auto">
         {/* Header */}
-        <div className="header-gradient text-white p-4 flex justify-between items-center">
-          <h1 className="text-xl font-bold">Today I Need</h1>
+        <div className="header-gradient text-white p-4 flex justify-between items-center h-16">
+          <h1 className="text-3xl font-bold">Today I Need</h1>
           {activeTab !== "about" && (
             <Button
               size="sm"
