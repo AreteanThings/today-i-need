@@ -26,6 +26,8 @@ const TaskList = ({ onEditTask }: TaskListProps) => {
   const [deletingTask, setDeletingTask] = useState<any>(null);
 
   const activeTasks = tasks.filter(task => task.isActive);
+  console.log("TaskList - All tasks:", tasks);
+  console.log("TaskList - Active tasks:", activeTasks);
 
   const handleDelete = (task: any) => {
     deleteTask(task.id);
@@ -46,6 +48,8 @@ const TaskList = ({ onEditTask }: TaskListProps) => {
     acc[task.category].push(task);
     return acc;
   }, {} as Record<string, any[]>);
+
+  console.log("TaskList - Grouped tasks:", groupedTasks);
 
   return (
     <div className="p-4 pb-20">

@@ -21,19 +21,24 @@ export const useTasks = () => {
   // Load tasks from localStorage
   useEffect(() => {
     const savedTasks = localStorage.getItem("todayINeedTasks");
+    console.log("Loading tasks from localStorage:", savedTasks);
     if (savedTasks) {
-      setTasks(JSON.parse(savedTasks));
+      const parsedTasks = JSON.parse(savedTasks);
+      console.log("Parsed tasks:", parsedTasks);
+      setTasks(parsedTasks);
     }
   }, []);
 
   // Save tasks to localStorage
   useEffect(() => {
+    console.log("Saving tasks to localStorage:", tasks);
     localStorage.setItem("todayINeedTasks", JSON.stringify(tasks));
   }, [tasks]);
 
   const generateId = () => Date.now().toString() + Math.random().toString(36).substr(2, 9);
 
   const addTask = (taskData: Omit<Task, "id" | "isActive" | "createdAt" | "completedDates">) => {
+    console.log("Adding task with data:", taskData);
     const newTask: Task = {
       ...taskData,
       id: generateId(),
@@ -41,7 +46,12 @@ export const useTasks = () => {
       createdAt: new Date().toISOString(),
       completedDates: [],
     };
-    setTasks(prev => [...prev, newTask]);
+    console.log("Created new task:", newTask);
+    setTasks(prev => {
+      const updated = [...prev, newTask];
+      console.log("Updated tasks array:", updated);
+      return updated;
+    });
   };
 
   const updateTask = (id: string, updates: Partial<Task>) => {
@@ -121,15 +131,22 @@ export const useTasks = () => {
     const today = new Date();
     const todayStr = today.toISOString().split('T')[0];
     
+    console.log("Getting today's tasks for date:", todayStr);
+    console.log("All tasks:", tasks);
+    
     const active: any[] = [];
     const done: any[] = [];
     const overdue: any[] = [];
     
     tasks.forEach(task => {
+      console.log(`Checking task: ${task.title}, isActive: ${task.isActive}`);
       if (!task.isActive) return;
       
       // Check if task is due today
-      if (isTaskDueOnDate(task, today)) {
+      const isDueToday = isTaskDueOnDate(task, today);
+      console.log(`Task ${task.title} due today: ${isDueToday}`);
+      
+      if (isDueToday) {
         const todayCompletion = task.completedDates.find(cd => cd.date === todayStr);
         
         if (todayCompletion) {
@@ -171,6 +188,7 @@ export const useTasks = () => {
       }
     });
     
+    console.log("Today's tasks result:", { active, done, overdue });
     return { active, done, overdue };
   };
 
