@@ -136,7 +136,7 @@ const TaskEntry = ({ onClose, editingTask }: TaskEntryProps) => {
           <Button variant="ghost" size="sm" onClick={handleCancel}>
             <ArrowLeft className="h-4 w-4" />
           </Button>
-          <h1 className="text-xl font-bold">
+          <h1 className="text-xl font-bold font-poppins">
             {editingTask ? "Edit Task" : "Task Entry"}
           </h1>
         </div>
@@ -146,7 +146,7 @@ const TaskEntry = ({ onClose, editingTask }: TaskEntryProps) => {
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             {/* Category */}
             <div className="space-y-2">
-              <Label htmlFor="category">Category *</Label>
+              <Label htmlFor="category" className="font-poppins">Category *</Label>
               <Input
                 id="category"
                 {...register("category")}
@@ -160,13 +160,13 @@ const TaskEntry = ({ onClose, editingTask }: TaskEntryProps) => {
                 ))}
               </datalist>
               {errors.category && (
-                <p className="text-sm text-destructive">{errors.category.message}</p>
+                <p className="text-sm text-destructive font-poppins">{errors.category.message}</p>
               )}
             </div>
 
             {/* Title */}
             <div className="space-y-2">
-              <Label htmlFor="title">Title *</Label>
+              <Label htmlFor="title" className="font-poppins">Title *</Label>
               <Input
                 id="title"
                 {...register("title")}
@@ -174,13 +174,13 @@ const TaskEntry = ({ onClose, editingTask }: TaskEntryProps) => {
                 className={errors.title ? "border-destructive" : ""}
               />
               {errors.title && (
-                <p className="text-sm text-destructive">{errors.title.message}</p>
+                <p className="text-sm text-destructive font-poppins">{errors.title.message}</p>
               )}
             </div>
 
             {/* Notes */}
             <div className="space-y-2">
-              <Label htmlFor="subtitle">Notes</Label>
+              <Label htmlFor="subtitle" className="font-poppins">Notes</Label>
               <Textarea
                 id="subtitle"
                 {...register("subtitle")}
@@ -191,7 +191,7 @@ const TaskEntry = ({ onClose, editingTask }: TaskEntryProps) => {
 
             {/* Start Date */}
             <div className="space-y-2">
-              <Label htmlFor="startDate">Start Date *</Label>
+              <Label htmlFor="startDate" className="font-poppins">Start Date *</Label>
               <Input
                 id="startDate"
                 type="date"
@@ -199,13 +199,13 @@ const TaskEntry = ({ onClose, editingTask }: TaskEntryProps) => {
                 className={errors.startDate ? "border-destructive" : ""}
               />
               {errors.startDate && (
-                <p className="text-sm text-destructive">{errors.startDate.message}</p>
+                <p className="text-sm text-destructive font-poppins">{errors.startDate.message}</p>
               )}
             </div>
 
             {/* End Date */}
             <div className="space-y-2">
-              <Label htmlFor="endDate">End Date</Label>
+              <Label htmlFor="endDate" className="font-poppins">End Date</Label>
               <Input
                 id="endDate"
                 type="date"
@@ -216,20 +216,20 @@ const TaskEntry = ({ onClose, editingTask }: TaskEntryProps) => {
 
             {/* Repeat Value */}
             <div className="space-y-2">
-              <Label htmlFor="repeatValue">Repeat *</Label>
+              <Label htmlFor="repeatValue" className="font-poppins">Repeat *</Label>
               <Select
                 value={watch("repeatValue")}
                 onValueChange={(value) => setValue("repeatValue", value as any)}
               >
-                <SelectTrigger>
+                <SelectTrigger className="font-poppins">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="daily">Daily</SelectItem>
-                  <SelectItem value="weekly">Weekly</SelectItem>
-                  <SelectItem value="monthly">Monthly</SelectItem>
-                  <SelectItem value="yearly">Yearly</SelectItem>
-                  <SelectItem value="custom">Custom</SelectItem>
+                  <SelectItem value="daily" className="font-poppins">Daily</SelectItem>
+                  <SelectItem value="weekly" className="font-poppins">Weekly</SelectItem>
+                  <SelectItem value="monthly" className="font-poppins">Monthly</SelectItem>
+                  <SelectItem value="yearly" className="font-poppins">Yearly</SelectItem>
+                  <SelectItem value="custom" className="font-poppins">Custom</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -241,16 +241,16 @@ const TaskEntry = ({ onClose, editingTask }: TaskEntryProps) => {
                 checked={watch("isShared")}
                 onCheckedChange={(checked) => setValue("isShared", !!checked)}
               />
-              <Label htmlFor="isShared">Share this task</Label>
+              <Label htmlFor="isShared" className="font-poppins">Share this task</Label>
             </div>
 
             {/* Actions */}
             <div className="flex gap-3 pt-4">
-              <Button type="submit" className="flex-1">
+              <Button type="submit" className="flex-1 font-poppins">
                 <Save className="h-4 w-4 mr-2" />
                 Save Task
               </Button>
-              <Button type="button" variant="outline" onClick={handleCancel}>
+              <Button type="button" variant="outline" onClick={handleCancel} className="font-poppins">
                 <X className="h-4 w-4 mr-2" />
                 Cancel
               </Button>
