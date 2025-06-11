@@ -132,8 +132,13 @@ const TaskEntry = ({ onClose, editingTask }: TaskEntryProps) => {
     <div className="min-h-screen bg-background">
       <div className="max-w-md mx-auto">
         {/* Header */}
-        <div className="bg-primary text-primary-foreground p-4 flex items-center gap-3">
-          <Button variant="ghost" size="sm" onClick={handleCancel}>
+        <div className="header-gradient text-white p-4 flex items-center gap-3">
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            onClick={handleCancel}
+            className="hover:bg-white/20 hover:text-white"
+          >
             <ArrowLeft className="h-4 w-4" />
           </Button>
           <h1 className="text-xl font-bold font-poppins">
@@ -246,11 +251,19 @@ const TaskEntry = ({ onClose, editingTask }: TaskEntryProps) => {
 
             {/* Actions */}
             <div className="flex gap-3 pt-4">
-              <Button type="submit" className="flex-1 font-poppins">
+              <Button 
+                type="submit" 
+                className="flex-1 font-poppins bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white border-0"
+              >
                 <Save className="h-4 w-4 mr-2" />
                 Save Task
               </Button>
-              <Button type="button" variant="outline" onClick={handleCancel} className="font-poppins">
+              <Button 
+                type="button" 
+                variant="outline" 
+                onClick={handleCancel} 
+                className="font-poppins hover:bg-gradient-to-r hover:from-blue-600 hover:to-blue-700 hover:text-white hover:border-blue-700 transition-all hover:bg-none"
+              >
                 <X className="h-4 w-4 mr-2" />
                 Cancel
               </Button>
