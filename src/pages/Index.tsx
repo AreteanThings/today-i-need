@@ -52,7 +52,7 @@ const Index = () => {
 
         {/* Navigation */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid grid-cols-4 w-full">
+          <TabsList className="grid grid-cols-3 w-full">
             <TabsTrigger value="today" className="flex items-center gap-1">
               <Calendar className="h-4 w-4" />
               Today
@@ -60,10 +60,6 @@ const Index = () => {
             <TabsTrigger value="tasks" className="flex items-center gap-1">
               <List className="h-4 w-4" />
               Tasks
-            </TabsTrigger>
-            <TabsTrigger value="entry" className="flex items-center gap-1">
-              <Plus className="h-4 w-4" />
-              Entry
             </TabsTrigger>
             <TabsTrigger value="about" className="flex items-center gap-1">
               <Info className="h-4 w-4" />
@@ -77,10 +73,6 @@ const Index = () => {
 
           <TabsContent value="tasks" className="mt-0">
             <TaskList onEditTask={handleEditTask} />
-          </TabsContent>
-
-          <TabsContent value="entry" className="mt-0">
-            <TaskEntry onClose={() => setActiveTab("today")} />
           </TabsContent>
 
           <TabsContent value="about" className="mt-0">
