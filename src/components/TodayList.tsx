@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Clock, User, Calendar, Undo2 } from "lucide-react";
 import { useTasks } from "@/hooks/useTasks";
@@ -12,6 +12,8 @@ interface TodayListProps {
 const TodayList = ({ onEditTask }: TodayListProps) => {
   const { getTodayTasks, markTaskDone, undoTaskDone } = useTasks();
   const { toast } = useToast();
+  const [hiddenOverdueTasks, setHiddenOverdueTasks] = useState<Set<string>>(new Set());
+
   const { active, done, overdue } = getTodayTasks();
 
   const handleMarkDone = (taskId: string, isOverdue = false) => {
@@ -20,10 +22,23 @@ const TodayList = ({ onEditTask }: TodayListProps) => {
       title: "Task Completed",
       description: "Task marked as done!",
     });
+
+    // If it's an overdue task, hide it after 10 seconds
+    if (isOverdue) {
+      setTimeout(() => {
+        setHiddenOverdueTasks(prev => new Set(prev).add(taskId));
+      }, 10000);
+    }
   };
 
   const handleUndo = (taskId: string) => {
     undoTaskDone(taskId);
+    // Remove from hidden set if it was there
+    setHiddenOverdueTasks(prev => {
+      const newSet = new Set(prev);
+      newSet.delete(taskId);
+      return newSet;
+    });
     toast({
       title: "Task Restored",
       description: "Task moved back to active.",
@@ -39,9 +54,14 @@ const TodayList = ({ onEditTask }: TodayListProps) => {
     tasks: any[]; 
     type: 'active' | 'done' | 'overdue' 
   }) => {
-    if (tasks.length === 0) return null;
+    // Filter out hidden overdue tasks
+    const filteredTasks = type === 'overdue' 
+      ? tasks.filter(task => !hiddenOverdueTasks.has(task.id))
+      : tasks;
 
-    const groupedTasks = tasks.reduce((acc, task) => {
+    if (filteredTasks.length === 0) return null;
+
+    const groupedTasks = filteredTasks.reduce((acc, task) => {
       if (!acc[task.category]) {
         acc[task.category] = [];
       }
@@ -162,7 +182,7 @@ const TodayList = ({ onEditTask }: TodayListProps) => {
       <TaskSection title="Done" tasks={done} type="done" />
       <TaskSection title="Overdue" tasks={overdue} type="overdue" />
       
-      {active.length === 0 && done.length === 0 && overdue.length === 0 && (
+      {active.length === 0 && done.length === 0 && overdue.filter(task => !hiddenOverdueTasks.has(task.id)).length === 0 && (
         <div className="text-center py-12">
           <p className="text-muted-foreground">No tasks for today!</p>
           <p className="text-sm text-muted-foreground mt-1">
