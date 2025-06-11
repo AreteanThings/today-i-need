@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -177,13 +178,13 @@ const TaskEntry = ({ onClose, editingTask }: TaskEntryProps) => {
               )}
             </div>
 
-            {/* Subtitle */}
+            {/* Notes */}
             <div className="space-y-2">
-              <Label htmlFor="subtitle">Subtitle</Label>
+              <Label htmlFor="subtitle">Notes</Label>
               <Textarea
                 id="subtitle"
                 {...register("subtitle")}
-                placeholder="Enter subtitle (optional)"
+                placeholder="Enter notes (optional)"
                 rows={2}
               />
             </div>
