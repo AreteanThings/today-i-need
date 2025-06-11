@@ -132,7 +132,7 @@ const TodayList = ({ onEditTask }: TodayListProps) => {
                             <Button
                               size="sm"
                               onClick={() => handleMarkDone(task.id)}
-                              className="font-bold"
+                              className="font-bold bg-blue-600 hover:bg-blue-700 text-white"
                             >
                               Done
                             </Button>
@@ -151,7 +151,7 @@ const TodayList = ({ onEditTask }: TodayListProps) => {
                             <Button
                               size="sm"
                               onClick={() => handleMarkDone(task.id, true)}
-                              className="font-bold"
+                              className="font-bold bg-blue-600 hover:bg-blue-700 text-white"
                             >
                               Done
                             </Button>
