@@ -142,6 +142,7 @@ const TodayList = ({ onEditTask }: TodayListProps) => {
                               size="sm"
                               variant="outline"
                               onClick={() => handleUndo(task.id)}
+                              className="hover:bg-gradient-to-r hover:from-blue-600 hover:to-blue-700 hover:text-white hover:border-blue-700 transition-all"
                             >
                               <Undo2 className="h-3 w-3 mr-1" />
                               Undo
