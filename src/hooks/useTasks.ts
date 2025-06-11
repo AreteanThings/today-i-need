@@ -145,24 +145,29 @@ export const useTasks = () => {
       
       // Check for overdue tasks - only check dates from start date onwards
       const startDate = new Date(task.startDate);
-      let checkDate = new Date(startDate);
+      const yesterday = new Date(today);
+      yesterday.setDate(yesterday.getDate() - 1);
       
-      // Only check dates from start date until yesterday
-      while (checkDate < today) {
-        // Make sure we're not checking dates before the task actually starts
-        if (checkDate >= startDate && isTaskDueOnDate(task, checkDate)) {
-          const checkDateStr = checkDate.toISOString().split('T')[0];
-          const completion = task.completedDates.find(cd => cd.date === checkDateStr);
-          
-          if (!completion) {
-            overdue.push({
-              ...task,
-              dueDate: checkDate.toISOString(),
-              id: `${task.id}-${checkDateStr}` // Unique ID for overdue instances
-            });
+      // Only check for overdue if the task started before today
+      if (startDate < today) {
+        let checkDate = new Date(Math.max(startDate.getTime(), startDate.getTime()));
+        
+        // Only check dates from start date until yesterday (not today)
+        while (checkDate <= yesterday) {
+          if (isTaskDueOnDate(task, checkDate)) {
+            const checkDateStr = checkDate.toISOString().split('T')[0];
+            const completion = task.completedDates.find(cd => cd.date === checkDateStr);
+            
+            if (!completion) {
+              overdue.push({
+                ...task,
+                dueDate: checkDate.toISOString(),
+                id: `${task.id}-${checkDateStr}` // Unique ID for overdue instances
+              });
+            }
           }
+          checkDate.setDate(checkDate.getDate() + 1);
         }
-        checkDate.setDate(checkDate.getDate() + 1);
       }
     });
     
