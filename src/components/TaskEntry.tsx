@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -88,7 +87,10 @@ const TaskEntry = ({ onClose, editingTask }: TaskEntryProps) => {
 
     try {
       if (editingTask) {
-        updateTask(editingTask.id, data);
+        updateTask(editingTask.id, {
+          ...data,
+          endDate: data.endDate || undefined, // Convert empty string to undefined
+        });
         toast({
           title: "Task Updated",
           description: "Your task has been updated successfully.",
@@ -100,7 +102,7 @@ const TaskEntry = ({ onClose, editingTask }: TaskEntryProps) => {
           title: data.title,
           subtitle: data.subtitle || "",
           startDate: data.startDate,
-          endDate: data.endDate || "",
+          endDate: data.endDate || undefined, // Convert empty string to undefined
           repeatValue: data.repeatValue,
           isShared: data.isShared,
         };
