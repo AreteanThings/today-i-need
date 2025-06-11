@@ -13,6 +13,14 @@ const About = () => {
           <CardTitle>Today I Need</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
+          <div className="flex justify-center mb-6">
+            <img 
+              src="/lovable-uploads/bae64307-21c6-471a-abe3-0199417df977.png" 
+              alt="Aretean Things Logo" 
+              className="max-w-full h-auto"
+            />
+          </div>
+          
           <p className="text-muted-foreground">
             Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod 
             tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, 
