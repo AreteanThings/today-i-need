@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Plus, List, Calendar, Info } from "lucide-react";
@@ -7,11 +7,41 @@ import TaskEntry from "@/components/TaskEntry";
 import TaskList from "@/components/TaskList";
 import TodayList from "@/components/TodayList";
 import About from "@/components/About";
+import { removeBackground, loadImage } from "@/utils/backgroundRemoval";
 
 const Index = () => {
   const [activeTab, setActiveTab] = useState("today");
   const [showTaskEntry, setShowTaskEntry] = useState(false);
   const [editingTask, setEditingTask] = useState(null);
+  const [processedLogoUrl, setProcessedLogoUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    const processLogo = async () => {
+      try {
+        console.log('Processing logo...');
+        const response = await fetch('/lovable-uploads/e8c19c5e-e0cf-4792-969f-5a6ccd3715d5.png');
+        const blob = await response.blob();
+        const imageElement = await loadImage(blob);
+        const processedBlob = await removeBackground(imageElement);
+        const url = URL.createObjectURL(processedBlob);
+        setProcessedLogoUrl(url);
+        console.log('Logo processed successfully');
+      } catch (error) {
+        console.error('Error processing logo:', error);
+        // Fallback to original logo if processing fails
+        setProcessedLogoUrl('/lovable-uploads/e8c19c5e-e0cf-4792-969f-5a6ccd3715d5.png');
+      }
+    };
+
+    processLogo();
+
+    // Cleanup function to revoke object URL
+    return () => {
+      if (processedLogoUrl) {
+        URL.revokeObjectURL(processedLogoUrl);
+      }
+    };
+  }, []);
 
   const handleEditTask = (task: any) => {
     setEditingTask(task);
@@ -37,11 +67,17 @@ const Index = () => {
       <div className="max-w-md mx-auto">
         {/* Header */}
         <div className="bg-primary text-primary-foreground p-4 flex justify-between items-center">
-          <img 
-            src="/lovable-uploads/e8c19c5e-e0cf-4792-969f-5a6ccd3715d5.png" 
-            alt="Today I Need" 
-            className="h-8 object-contain"
-          />
+          {processedLogoUrl ? (
+            <img 
+              src={processedLogoUrl}
+              alt="Today I Need" 
+              className="h-12 object-contain"
+            />
+          ) : (
+            <div className="h-12 flex items-center text-lg font-semibold">
+              Today I Need
+            </div>
+          )}
           {activeTab !== "about" && (
             <Button
               size="sm"
