@@ -23,6 +23,8 @@ const taskSchema = z.object({
   isShared: z.boolean().default(false),
 });
 
+type TaskFormData = z.infer<typeof taskSchema>;
+
 interface TaskEntryProps {
   onClose: () => void;
   editingTask?: any;
@@ -39,7 +41,7 @@ const TaskEntry = ({ onClose, editingTask }: TaskEntryProps) => {
     watch,
     formState: { errors },
     reset,
-  } = useForm({
+  } = useForm<TaskFormData>({
     resolver: zodResolver(taskSchema),
     defaultValues: {
       category: "",
@@ -66,7 +68,7 @@ const TaskEntry = ({ onClose, editingTask }: TaskEntryProps) => {
     }
   }, [editingTask, reset]);
 
-  const onSubmit = (data: z.infer<typeof taskSchema>) => {
+  const onSubmit = (data: TaskFormData) => {
     // Check for duplicate title (excluding current task if editing)
     const existingTask = tasks.find(
       (task) => 
@@ -92,7 +94,17 @@ const TaskEntry = ({ onClose, editingTask }: TaskEntryProps) => {
           description: "Your task has been updated successfully.",
         });
       } else {
-        addTask(data);
+        // Create the task data with all required fields
+        const taskData = {
+          category: data.category,
+          title: data.title,
+          subtitle: data.subtitle || "",
+          startDate: data.startDate,
+          endDate: data.endDate || "",
+          repeatValue: data.repeatValue,
+          isShared: data.isShared,
+        };
+        addTask(taskData);
         toast({
           title: "Task Created",
           description: "Your task has been created successfully.",

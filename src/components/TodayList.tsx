@@ -60,7 +60,7 @@ const TodayList = ({ onEditTask }: TodayListProps) => {
                 {category}
               </h3>
               <div className="space-y-2">
-                {categoryTasks
+                {(categoryTasks as any[])
                   .sort((a, b) => a.title.localeCompare(b.title))
                   .map((task) => (
                     <div
