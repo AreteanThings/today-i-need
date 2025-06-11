@@ -143,13 +143,14 @@ export const useTasks = () => {
         }
       }
       
-      // Check for overdue tasks
-      const yesterday = new Date(today);
-      yesterday.setDate(yesterday.getDate() - 1);
+      // Check for overdue tasks - only check dates from start date onwards
+      const startDate = new Date(task.startDate);
+      let checkDate = new Date(startDate);
       
-      let checkDate = new Date(task.startDate);
+      // Only check dates from start date until yesterday
       while (checkDate < today) {
-        if (isTaskDueOnDate(task, checkDate)) {
+        // Make sure we're not checking dates before the task actually starts
+        if (checkDate >= startDate && isTaskDueOnDate(task, checkDate)) {
           const checkDateStr = checkDate.toISOString().split('T')[0];
           const completion = task.completedDates.find(cd => cd.date === checkDateStr);
           
