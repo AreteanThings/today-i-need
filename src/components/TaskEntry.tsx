@@ -194,29 +194,32 @@ const TaskEntry = ({ onClose, editingTask }: TaskEntryProps) => {
               />
             </div>
 
-            {/* Start Date */}
-            <div className="space-y-2">
-              <Label htmlFor="startDate" className="font-poppins">Start Date *</Label>
-              <Input
-                id="startDate"
-                type="date"
-                {...register("startDate")}
-                className={errors.startDate ? "border-destructive" : ""}
-              />
-              {errors.startDate && (
-                <p className="text-sm text-destructive font-poppins">{errors.startDate.message}</p>
-              )}
-            </div>
+            {/* Start Date and End Date on the same line */}
+            <div className="grid grid-cols-2 gap-3">
+              {/* Start Date */}
+              <div className="space-y-2">
+                <Label htmlFor="startDate" className="font-poppins">Start Date *</Label>
+                <Input
+                  id="startDate"
+                  type="date"
+                  {...register("startDate")}
+                  className={errors.startDate ? "border-destructive" : ""}
+                />
+                {errors.startDate && (
+                  <p className="text-sm text-destructive font-poppins">{errors.startDate.message}</p>
+                )}
+              </div>
 
-            {/* End Date */}
-            <div className="space-y-2">
-              <Label htmlFor="endDate" className="font-poppins">End Date</Label>
-              <Input
-                id="endDate"
-                type="date"
-                {...register("endDate")}
-                placeholder="Leave blank for indefinite"
-              />
+              {/* End Date */}
+              <div className="space-y-2">
+                <Label htmlFor="endDate" className="font-poppins">End Date</Label>
+                <Input
+                  id="endDate"
+                  type="date"
+                  {...register("endDate")}
+                  placeholder="Leave blank for indefinite"
+                />
+              </div>
             </div>
 
             {/* Repeat Value */}
