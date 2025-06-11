@@ -108,7 +108,7 @@ const TaskList = ({ onEditTask }: TaskListProps) => {
                             size="sm"
                             variant="outline"
                             onClick={() => onEditTask(task)}
-                            className="hover:bg-gradient-to-r hover:from-blue-600 hover:to-blue-700 hover:text-white hover:border-blue-700 transition-all"
+                            className="hover:bg-gradient-to-r hover:from-blue-600 hover:to-blue-700 hover:text-white hover:border-blue-700 transition-all hover:bg-none"
                           >
                             <Edit className="h-3 w-3" />
                           </Button>
@@ -119,7 +119,7 @@ const TaskList = ({ onEditTask }: TaskListProps) => {
                                 size="sm"
                                 variant="outline"
                                 onClick={() => setDeletingTask(task)}
-                                className="hover:bg-gradient-to-r hover:from-blue-600 hover:to-blue-700 hover:text-white hover:border-blue-700 transition-all"
+                                className="hover:bg-gradient-to-r hover:from-blue-600 hover:to-blue-700 hover:text-white hover:border-blue-700 transition-all hover:bg-none"
                               >
                                 <Trash2 className="h-3 w-3" />
                               </Button>
