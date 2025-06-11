@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Clock, User, Calendar, Undo2 } from "lucide-react";
@@ -169,7 +168,7 @@ const TodayList = ({ onEditTask }: TodayListProps) => {
   return (
     <div className="p-4 pb-20">
       <div className="mb-4">
-        <h1 className="text-2xl font-bold text-foreground">
+        <h1 className="text-2xl font-bold text-foreground font-poppins">
           Today - {new Date().toLocaleDateString('en-US', { 
             weekday: 'long', 
             month: 'long', 
