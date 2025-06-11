@@ -38,8 +38,8 @@ const Index = () => {
         {/* Header */}
         <div className="bg-primary text-primary-foreground p-4 flex justify-between items-center">
           <img 
-            src="/lovable-uploads/4afb77f3-4914-42f5-b70d-5201d4577c5b.png" 
-            alt="Aretean Things" 
+            src="/lovable-uploads/e8c19c5e-e0cf-4792-969f-5a6ccd3715d5.png" 
+            alt="Today I Need" 
             className="h-8 object-contain"
           />
           {activeTab !== "about" && (
