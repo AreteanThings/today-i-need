@@ -36,12 +36,8 @@ const Index = () => {
     <div className="min-h-screen bg-background">
       <div className="max-w-md mx-auto">
         {/* Header */}
-        <div className="bg-primary text-primary-foreground p-4 flex justify-between items-center h-20">
-          <img 
-            src="/lovable-uploads/2479f755-5efa-474f-b6f7-1c4d6feaa479.png"
-            alt="Today I Need" 
-            className="h-48 object-contain max-h-full"
-          />
+        <div className="bg-primary text-primary-foreground p-4 flex justify-between items-center">
+          <h1 className="text-xl font-bold">Today I Need</h1>
           {activeTab !== "about" && (
             <Button
               size="sm"
