@@ -37,7 +37,11 @@ const Index = () => {
       <div className="max-w-md mx-auto">
         {/* Header */}
         <div className="bg-primary text-primary-foreground p-4 flex justify-between items-center">
-          <h1 className="text-xl font-bold">Today I Need</h1>
+          <img 
+            src="/lovable-uploads/4afb77f3-4914-42f5-b70d-5201d4577c5b.png" 
+            alt="Aretean Things" 
+            className="h-8 object-contain"
+          />
           {activeTab !== "about" && (
             <Button
               size="sm"
