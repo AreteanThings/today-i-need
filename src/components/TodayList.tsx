@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Clock, User, Calendar, Undo2 } from "lucide-react";
@@ -133,6 +132,7 @@ const TodayList = ({ onEditTask }: TodayListProps) => {
                             <Button
                               size="sm"
                               onClick={() => handleMarkDone(task.id)}
+                              className="font-bold"
                             >
                               Done
                             </Button>
@@ -151,6 +151,7 @@ const TodayList = ({ onEditTask }: TodayListProps) => {
                             <Button
                               size="sm"
                               onClick={() => handleMarkDone(task.id, true)}
+                              className="font-bold"
                             >
                               Done
                             </Button>
