@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Clock, User, Calendar, Undo2 } from "lucide-react";
@@ -74,7 +75,7 @@ const TodayList = ({ onEditTask }: TodayListProps) => {
         {Object.entries(groupedTasks)
           .sort(([a], [b]) => a.localeCompare(b))
           .map(([category, categoryTasks]) => (
-            <div key={category} className="mb-4 border border-red-500 rounded-lg p-3">
+            <div key={category} className="mb-4">
               <h3 className="text-sm font-medium text-muted-foreground mb-2 uppercase tracking-wide">
                 {category}
               </h3>
