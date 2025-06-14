@@ -109,20 +109,19 @@ const TaskEntry = ({ onClose, editingTask }: TaskEntryProps) => {
         updateTask(editingTask.id, {
           ...data,
           customRrule: data.repeatValue === "custom" ? customRrule : undefined,
-          endDate: data.endDate || undefined, // Convert empty string to undefined
+          endDate: data.endDate || undefined
         });
         toast({
           title: "Task Updated",
           description: "Your task has been updated successfully.",
         });
       } else {
-        // Create the task data with all required fields
         const taskData = {
           category: data.category,
           title: data.title,
           subtitle: data.subtitle || "",
           startDate: data.startDate,
-          endDate: data.endDate || undefined, // Convert empty string to undefined
+          endDate: data.endDate || undefined,
           repeatValue: data.repeatValue,
           isShared: data.isShared,
           customRrule: data.repeatValue === "custom" ? customRrule : undefined,

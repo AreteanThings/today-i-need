@@ -72,7 +72,7 @@ export const useTasks = () => {
     }
   };
 
-  const updateTask = async (id: string, updates: Partial<Task>) => {
+  const updateTask = async (id: string, updates: Partial<Task> & { customRrule?: string }) => {
     if (!user) return;
     try {
       await updateTaskInSupabase(id, updates, user.id);

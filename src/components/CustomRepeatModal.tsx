@@ -1,10 +1,34 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from "@/components/ui/select";
-import { rrulestr, RRule } from "rrule";
+import { rrulestr, RRule, Weekday } from "rrule";
+
+// Map string codes to RRule weekday instances
+const WEEKDAY_CODES = [
+  { label: "Monday", code: "MO" },
+  { label: "Tuesday", code: "TU" },
+  { label: "Wednesday", code: "WE" },
+  { label: "Thursday", code: "TH" },
+  { label: "Friday", code: "FR" },
+  { label: "Saturday", code: "SA" },
+  { label: "Sunday", code: "SU" },
+];
+
+const codeToRRuleWeekday = (code: string) => {
+  switch (code) {
+    case "MO": return RRule.MO;
+    case "TU": return RRule.TU;
+    case "WE": return RRule.WE;
+    case "TH": return RRule.TH;
+    case "FR": return RRule.FR;
+    case "SA": return RRule.SA;
+    case "SU": return RRule.SU;
+    default: return undefined;
+  }
+};
 
 type CustomRepeatModalProps = {
   open: boolean;
@@ -13,25 +37,20 @@ type CustomRepeatModalProps = {
   initialRRule?: string;
 };
 
-const WEEKDAYS = [
-  { label: "Monday", value: RRule.MO },
-  { label: "Tuesday", value: RRule.TU },
-  { label: "Wednesday", value: RRule.WE },
-  { label: "Thursday", value: RRule.TH },
-  { label: "Friday", value: RRule.FR },
-  { label: "Saturday", value: RRule.SA },
-  { label: "Sunday", value: RRule.SU },
-];
-
 export default function CustomRepeatModal({ open, onClose, onApply, initialRRule }: CustomRepeatModalProps) {
-  // Recurrence options
   const [freq, setFreq] = useState<RRule.Frequency>(RRule.DAILY);
   const [interval, setInterval] = useState(1);
+  // Use weekday code strings like "MO", "TU", etc.
   const [byweekday, setByweekday] = useState<string[]>([]);
   const [bysetpos, setBysetpos] = useState<string>('');
   const [rruleString, setRRuleString] = useState<string>(initialRRule || '');
 
-  // Generate RRULE string live
+  // Parse initial rule if provided
+  useEffect(() => {
+    if (initialRRule) setRRuleString(initialRRule);
+  }, [initialRRule]);
+
+  // build the RRULE string
   const buildRRuleString = () => {
     let options: Partial<RRule.Options> = {
       freq,
@@ -39,12 +58,12 @@ export default function CustomRepeatModal({ open, onClose, onApply, initialRRule
     };
 
     if (freq === RRule.WEEKLY && byweekday.length > 0) {
-      options.byweekday = byweekday.map(val => (RRule as any)[val]);
+      options.byweekday = byweekday.map(code => codeToRRuleWeekday(code));
     }
 
     if ((freq === RRule.MONTHLY || freq === RRule.YEARLY) && bysetpos && byweekday.length > 0) {
-      // e.g. 2nd Tuesday
-      options.byweekday = byweekday.map(val => (RRule as any)[val].nth(parseInt(bysetpos, 10)));
+      // e.g., 2nd Tuesday = bysetpos: 2, byweekday: TU.nth(2)
+      options.byweekday = byweekday.map(code => codeToRRuleWeekday(code)?.nth(parseInt(bysetpos, 10)));
     }
 
     const rule = new RRule(options);
@@ -56,9 +75,6 @@ export default function CustomRepeatModal({ open, onClose, onApply, initialRRule
     const ruleStr = buildRRuleString();
     setRRuleString(ruleStr);
   }
-
-  // Effect: update preview on change
-  // (Here, state is updated only via handlers)
 
   // Handlers
   const handleFreqChange = (val: string) => {
@@ -74,9 +90,9 @@ export default function CustomRepeatModal({ open, onClose, onApply, initialRRule
     setTimeout(updatePreview, 0);
   };
 
-  const handleWeekdayToggle = (val: string) => {
+  const handleWeekdayToggle = (code: string) => {
     setByweekday(prev => {
-      const next = prev.includes(val) ? prev.filter(x => x !== val) : [...prev, val];
+      const next = prev.includes(code) ? prev.filter(x => x !== code) : [...prev, code];
       setTimeout(updatePreview, 0);
       return next;
     });
@@ -92,7 +108,7 @@ export default function CustomRepeatModal({ open, onClose, onApply, initialRRule
     onClose();
   };
 
-  // Quick live preview text
+  // Live preview text
   let preview = "";
   try {
     const r = rrulestr(rruleString);
@@ -139,13 +155,13 @@ export default function CustomRepeatModal({ open, onClose, onApply, initialRRule
             <div>
               <label className="font-poppins block mb-2">On</label>
               <div className="flex flex-wrap gap-2">
-                {WEEKDAYS.map(wd => (
+                {WEEKDAY_CODES.map(wd => (
                   <Button
-                    key={wd.label}
+                    key={wd.code}
                     type="button"
-                    variant={byweekday.includes(wd.value.weekday) ? "default" : "outline"}
+                    variant={byweekday.includes(wd.code) ? "default" : "outline"}
                     className="font-poppins"
-                    onClick={() => handleWeekdayToggle(wd.value.weekday)}
+                    onClick={() => handleWeekdayToggle(wd.code)}
                   >
                     {wd.label.slice(0, 2)}
                   </Button>
