@@ -87,7 +87,7 @@ const TaskEntry = ({ onClose, editingTask }: TaskEntryProps) => {
     }
   }, [editingTask, reset]);
 
-  const onSubmit = (data: TaskFormData) => {
+  const onSubmit = async (data: TaskFormData) => {
     // Check for duplicate title (excluding current task if editing)
     const existingTask = tasks.find(
       (task) => 
@@ -107,7 +107,7 @@ const TaskEntry = ({ onClose, editingTask }: TaskEntryProps) => {
 
     try {
       if (editingTask) {
-        updateTask(editingTask.id, {
+        await updateTask(editingTask.id, {
           ...data,
           customRrule: data.repeatValue === "custom" ? customRrule : undefined,
           endDate: data.endDate || undefined
@@ -127,7 +127,7 @@ const TaskEntry = ({ onClose, editingTask }: TaskEntryProps) => {
           isShared: data.isShared,
           customRrule: data.repeatValue === "custom" ? customRrule : undefined,
         };
-        addTask(taskData);
+        await addTask(taskData);
         toast({
           title: "Task Created",
           description: "Your task has been created successfully.",
