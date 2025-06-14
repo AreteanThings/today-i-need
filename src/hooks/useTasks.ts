@@ -66,6 +66,10 @@ export const useTasks = () => {
         completedDates: [],
       };
       setTasks(prev => [...prev, newTask]);
+      console.log('addTask: Inserted new task & updating local state:', newTask);
+
+      // Immediately refetch the full tasks list to ensure consistency
+      await fetchTasks();
     } catch (error) {
       console.error('Error adding task:', error);
       throw error;
