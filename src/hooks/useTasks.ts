@@ -18,6 +18,14 @@ export interface Task {
   completedDates: { date: string; completedAt: string; completedBy: string }[];
 }
 
+// Utility function to make sure repeatValue is valid
+const asRepeatValue = (val: any): Task["repeatValue"] => {
+  if (["daily", "weekly", "monthly", "yearly", "custom"].includes(val)) {
+    return val as Task["repeatValue"];
+  }
+  return "daily"; // fallback value
+};
+
 export const useTasks = () => {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
@@ -64,7 +72,7 @@ export const useTasks = () => {
         subtitle: task.subtitle,
         startDate: task.start_date,
         endDate: task.end_date,
-        repeatValue: task.repeat_value,
+        repeatValue: asRepeatValue(task.repeat_value),
         isShared: task.is_shared,
         isActive: task.is_active,
         createdAt: task.created_at,
@@ -73,7 +81,7 @@ export const useTasks = () => {
           .map(completion => ({
             date: completion.completed_date,
             completedAt: completion.completed_at,
-            completedBy: "You" // In future, this could be actual user names
+            completedBy: "You"
           }))
       }));
 
