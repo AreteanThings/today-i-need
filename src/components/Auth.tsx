@@ -41,6 +41,7 @@ function ForgotPasswordModal({ open, onClose }: { open: boolean, onClose: () => 
   };
 
   if (!open) return null;
+  
   return (
     <div className="fixed inset-0 flex items-center justify-center z-50 bg-black/30">
       <div className="bg-background rounded-lg shadow-lg w-full max-w-sm p-6 relative">
@@ -61,6 +62,7 @@ function ForgotPasswordModal({ open, onClose }: { open: boolean, onClose: () => 
             onChange={e => setEmail(e.target.value)}
             required
             disabled={sending}
+            autoComplete="email"
           />
           <Button
             type="submit"
@@ -73,7 +75,7 @@ function ForgotPasswordModal({ open, onClose }: { open: boolean, onClose: () => 
         </form>
         {submitted && (
           <div className="text-green-600 text-sm mt-3">
-            If there’s an account with that email, a reset link has been sent.
+            If there's an account with that email, a reset link has been sent.
           </div>
         )}
       </div>
@@ -115,38 +117,10 @@ const Auth = () => {
           </CardDescription>
         </CardHeader>
         
-        {/* Social SSO Buttons (Commented Out) */}
         <CardContent>
-          {/* <div className="flex flex-col gap-2 mb-2">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={handleGoogleSignIn}
-              disabled={loading}
-              className="w-full flex items-center justify-center gap-2"
-            >
-              Continue with Google
-            </Button>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={handleAppleSignIn}
-              disabled={loading}
-              className="w-full flex items-center justify-center gap-2"
-            >
-              <Apple />
-              Continue with Apple
-            </Button>
-          </div>
-          <div className="relative my-2">
-            <span className="absolute left-1/2 -translate-x-1/2 -top-3 bg-background px-2 text-xs text-muted-foreground">
-              or
-            </span>
-            <div className="border-b border-muted-foreground/10 w-full mb-2"></div>
-          </div> */}
+          {/* Social SSO section is commented out */}
         </CardContent>
 
-        {/* Email / password */}
         <Tabs defaultValue="signin" className="w-full">
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="signin">Sign In</TabsTrigger>
@@ -165,6 +139,7 @@ const Auth = () => {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required
+                    autoComplete="email"
                   />
                 </div>
                 <div className="space-y-2">
@@ -176,6 +151,7 @@ const Auth = () => {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
+                    autoComplete="current-password"
                   />
                 </div>
                 <div className="flex justify-end">
@@ -212,6 +188,7 @@ const Auth = () => {
                     placeholder="Enter your full name"
                     value={fullName}
                     onChange={(e) => setFullName(e.target.value)}
+                    autoComplete="name"
                   />
                 </div>
                 <div className="space-y-2">
@@ -223,6 +200,7 @@ const Auth = () => {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required
+                    autoComplete="email"
                   />
                 </div>
                 <div className="space-y-2">
@@ -234,6 +212,7 @@ const Auth = () => {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
+                    autoComplete="new-password"
                   />
                 </div>
               </CardContent>
@@ -251,10 +230,13 @@ const Auth = () => {
           </TabsContent>
         </Tabs>
       </Card>
-      <ForgotPasswordModal
-        open={showForgotModal}
-        onClose={() => setShowForgotModal(false)}
-      />
+      
+      {showForgotModal && (
+        <ForgotPasswordModal
+          open={showForgotModal}
+          onClose={() => setShowForgotModal(false)}
+        />
+      )}
     </div>
   );
 };
