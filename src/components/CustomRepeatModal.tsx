@@ -46,52 +46,51 @@ export default function CustomRepeatModal({ open, onClose, onApply, initialRRule
   const [bysetpos, setBysetpos] = useState<string>('');
   const [rruleString, setRRuleString] = useState<string>(initialRRule || '');
 
+  // Set initial value if editing
   useEffect(() => {
     if (initialRRule) setRRuleString(initialRRule);
   }, [initialRRule]);
 
-  const buildRRuleString = () => {
-    let options: Partial<Options> = {
-      freq,
-      interval,
+  // Always update preview string when relevant state changes
+  useEffect(() => {
+    const buildRRuleString = () => {
+      let options: Partial<Options> = {
+        freq,
+        interval,
+      };
+
+      if (freq === RRuleLib.RRule.WEEKLY && byweekday.length > 0) {
+        options.byweekday = byweekday.map(code => codeToRRuleWeekday(code));
+      }
+      if ((freq === RRuleLib.RRule.MONTHLY || freq === RRuleLib.RRule.YEARLY) && bysetpos && byweekday.length > 0) {
+        options.byweekday = byweekday.map(code => codeToRRuleWeekday(code)?.nth(parseInt(bysetpos, 10)));
+      }
+      const rule = new RRuleLib.RRule(options);
+      return rule.toString();
     };
 
-    if (freq === RRuleLib.RRule.WEEKLY && byweekday.length > 0) {
-      options.byweekday = byweekday.map(code => codeToRRuleWeekday(code));
-    }
-    if ((freq === RRuleLib.RRule.MONTHLY || freq === RRuleLib.RRule.YEARLY) && bysetpos && byweekday.length > 0) {
-      options.byweekday = byweekday.map(code => codeToRRuleWeekday(code)?.nth(parseInt(bysetpos, 10)));
-    }
-    const rule = new RRuleLib.RRule(options);
-    return rule.toString();
-  };
-
-  function updatePreview() {
     const ruleStr = buildRRuleString();
     setRRuleString(ruleStr);
-  }
+  }, [freq, interval, byweekday, bysetpos]);
 
   const handleFreqChange = (val: string) => {
     setFreq(Number(val));
     setByweekday([]);
     setBysetpos('');
-    setTimeout(updatePreview, 0);
   };
   const handleIntervalChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = parseInt(e.target.value, 10);
     setInterval(isNaN(val) ? 1 : Math.max(1, val));
-    setTimeout(updatePreview, 0);
   };
   const handleWeekdayToggle = (code: string) => {
-    setByweekday(prev => {
-      const next = prev.includes(code) ? prev.filter(x => x !== code) : [...prev, code];
-      setTimeout(updatePreview, 0);
-      return next;
-    });
+    setByweekday(prev =>
+      prev.includes(code)
+        ? prev.filter(x => x !== code)
+        : [...prev, code]
+    );
   };
   const handleSetposChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setBysetpos(e.target.value);
-    setTimeout(updatePreview, 0);
   };
   const handleApply = () => {
     onApply(rruleString);
