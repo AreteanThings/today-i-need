@@ -38,11 +38,12 @@ const Index = () => {
     );
   }
 
-  // Show auth screen if not authenticated
+  // Show auth screen if not authenticated - completely separate render
   if (!user) {
     return <Auth />;
   }
 
+  // Only render the main app when authenticated - Auth component is completely unmounted
   if (showTaskEntry) {
     return (
       <TaskEntry
