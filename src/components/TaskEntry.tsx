@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -12,6 +11,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { ArrowLeft, Save, X } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useTasks } from "@/hooks/useTasks";
+import CustomRepeatModal from "./CustomRepeatModal";
 
 const taskSchema = z.object({
   category: z.string().min(1, "Category is required"),
@@ -54,6 +54,23 @@ const TaskEntry = ({ onClose, editingTask }: TaskEntryProps) => {
     },
   });
 
+  // New state for custom repeat modal and rrule
+  const [customRepeatOpen, setCustomRepeatOpen] = useState(false);
+  const [customRrule, setCustomRrule] = useState<string | undefined>(editingTask?.customRrule);
+
+  // When switching to "custom", open the modal.
+  useEffect(() => {
+    if (watch("repeatValue") === "custom") {
+      setCustomRepeatOpen(true);
+    }
+  }, [watch("repeatValue")]);
+
+  // When user applies custom rule, close the modal and save to state
+  const handleApplyCustomRepeat = (rruleString: string) => {
+    setCustomRrule(rruleString);
+    setCustomRepeatOpen(false);
+  };
+
   useEffect(() => {
     if (editingTask) {
       reset({
@@ -65,6 +82,7 @@ const TaskEntry = ({ onClose, editingTask }: TaskEntryProps) => {
         repeatValue: editingTask.repeatValue,
         isShared: editingTask.isShared,
       });
+      setCustomRrule(editingTask.customRrule || '');
     }
   }, [editingTask, reset]);
 
@@ -90,6 +108,7 @@ const TaskEntry = ({ onClose, editingTask }: TaskEntryProps) => {
       if (editingTask) {
         updateTask(editingTask.id, {
           ...data,
+          customRrule: data.repeatValue === "custom" ? customRrule : undefined,
           endDate: data.endDate || undefined, // Convert empty string to undefined
         });
         toast({
@@ -106,6 +125,7 @@ const TaskEntry = ({ onClose, editingTask }: TaskEntryProps) => {
           endDate: data.endDate || undefined, // Convert empty string to undefined
           repeatValue: data.repeatValue,
           isShared: data.isShared,
+          customRrule: data.repeatValue === "custom" ? customRrule : undefined,
         };
         addTask(taskData);
         toast({
@@ -240,6 +260,12 @@ const TaskEntry = ({ onClose, editingTask }: TaskEntryProps) => {
                   <SelectItem value="custom" className="font-poppins">Custom</SelectItem>
                 </SelectContent>
               </Select>
+              {/* Show preview if custom */}
+              {watch("repeatValue") === "custom" && customRrule && (
+                <div className="mt-2 bg-accent/20 p-2 rounded font-poppins text-xs">
+                  Custom: {customRrule}
+                </div>
+              )}
             </div>
 
             {/* Share */}
@@ -274,6 +300,13 @@ const TaskEntry = ({ onClose, editingTask }: TaskEntryProps) => {
           </form>
         </div>
       </div>
+      {/* Custom Repeat Modal (show if needed) */}
+      <CustomRepeatModal
+        open={customRepeatOpen}
+        onClose={() => setCustomRepeatOpen(false)}
+        onApply={handleApplyCustomRepeat}
+        initialRRule={customRrule}
+      />
     </div>
   );
 };
