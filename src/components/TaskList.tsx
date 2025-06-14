@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Edit, Trash2 } from "lucide-react";
@@ -111,7 +110,11 @@ const TaskList = ({ onEditTask }: TaskListProps) => {
                     );
                     if (task.repeatValue === "custom") {
                       const repairedRule = repairCustomRrule(task.customRrule);
-                      const ruleText = getRRuleText(repairedRule);
+                      let ruleText = getRRuleText(repairedRule);
+                      // Capitalize the first character if text is present
+                      if (ruleText && ruleText.length > 0) {
+                        ruleText = ruleText.charAt(0).toUpperCase() + ruleText.slice(1);
+                      }
                       repeatDesc = (
                         <span>
                           Repeats:{" "}

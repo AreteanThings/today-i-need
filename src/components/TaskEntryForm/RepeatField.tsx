@@ -1,9 +1,9 @@
-
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import CustomRepeatModal from "../CustomRepeatModal";
 import { getRRuleText } from "@/utils/getRRuleText";
 import { useEffect } from "react";
+import { repairCustomRrule } from "@/utils/repairCustomRrule";
 
 interface RepeatFieldProps {
   repeatValue: string;
@@ -22,9 +22,15 @@ const RepeatField = ({
   customRrule,
   setCustomRrule,
 }: RepeatFieldProps) => {
-  // Open custom modal if selected
+  // Modified: Only auto-open custom modal if repeatValue changed to "custom" from user selection (not when form loads with value)
+  // We do this by tracking the last value using a ref
+  const prevRepeatValue = React.useRef<string>(repeatValue);
+
   useEffect(() => {
-    if (repeatValue === "custom") setCustomRepeatOpen(true);
+    if (repeatValue === "custom" && prevRepeatValue.current !== "custom") {
+      setCustomRepeatOpen(true);
+    }
+    prevRepeatValue.current = repeatValue;
   }, [repeatValue, setCustomRepeatOpen]);
 
   const handleApplyCustomRepeat = (rruleString: string) => {
@@ -52,10 +58,17 @@ const RepeatField = ({
       </Select>
       {repeatValue === "custom" && customRrule && (
         <div className="mt-2 bg-accent/20 p-2 rounded font-poppins text-xs">
-          {getRRuleText(customRrule)
-            ? <>Custom: <span className="font-semibold">{getRRuleText(customRrule)}</span></>
-            : <>Custom: <span className="font-mono">{customRrule}</span></>
-          }
+          {/* Ensure we use repaired, and capitalize */}
+          {(() => {
+            const repaired = repairCustomRrule(customRrule);
+            let text = getRRuleText(repaired);
+            if (text && text.length > 0) {
+              text = text.charAt(0).toUpperCase() + text.slice(1);
+            }
+            return text
+              ? <>Custom: <span className="font-semibold">{text}</span></>
+              : <>Custom: <span className="font-mono">{customRrule}</span></>;
+          })()}
         </div>
       )}
       <CustomRepeatModal

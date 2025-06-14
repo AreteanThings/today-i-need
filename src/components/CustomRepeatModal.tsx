@@ -45,10 +45,43 @@ export default function CustomRepeatModal({ open, onClose, onApply, initialRRule
   const [bysetpos, setBysetpos] = useState<string>('');
   const [rruleString, setRRuleString] = useState<string>(initialRRule || '');
 
-  // Set initial value if editing
+  // Parse initialRRule every time the dialog opens (not just first mount!)
   useEffect(() => {
-    if (initialRRule) setRRuleString(initialRRule);
-  }, [initialRRule]);
+    if (open && initialRRule) {
+      // Try parsing the initial RRULE and pull values for all fields
+      try {
+        const rruleObj = RRuleLib.rrulestr(initialRRule.startsWith('RRULE:') ? initialRRule : ('RRULE:' + initialRRule));
+        setFreq(rruleObj.options.freq);
+        setInterval(rruleObj.options.interval || 1);
+
+        // WEEKLY, or MONTHLY/YEARLY nth
+        if (Array.isArray(rruleObj.options.byweekday)) {
+          let bywd = rruleObj.options.byweekday.map((wd: any) =>
+            typeof wd === "number" ? WEEKDAY_CODES[wd]?.code : wd?.toString().slice(0, 2)
+          ).filter(Boolean);
+          setByweekday(bywd);
+        } else {
+          setByweekday([]);
+        }
+
+        if (rruleObj.options.bysetpos) {
+          setBysetpos(String(rruleObj.options.bysetpos));
+        } else {
+          setBysetpos("");
+        }
+
+        setRRuleString(initialRRule.startsWith("RRULE:") ? initialRRule : "RRULE:" + initialRRule);
+      } catch {
+        // If cannot parse, set to default
+        setFreq(RRuleLib.RRule.DAILY);
+        setInterval(1);
+        setByweekday([]);
+        setBysetpos('');
+        setRRuleString(initialRRule);
+      }
+    }
+    // Only run when modal opens or initialRRule changes
+  }, [open, initialRRule]);
 
   // Always update preview string and RRULE string when relevant state changes
   useEffect(() => {
@@ -103,6 +136,9 @@ export default function CustomRepeatModal({ open, onClose, onApply, initialRRule
   try {
     const r = RRuleLib.rrulestr(rruleString);
     preview = r.toText();
+    if (preview && preview.length > 0) {
+      preview = preview.charAt(0).toUpperCase() + preview.slice(1);
+    }
   } catch {
     preview = "";
   }
