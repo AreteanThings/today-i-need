@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Edit, Trash2 } from "lucide-react";
@@ -16,6 +15,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { getNextDueDate, getMostRecentOverdueDate } from "@/hooks/useTasks.utils";
+import { getRRuleText } from "@/utils/getRRuleText";
 
 interface TaskListProps {
   onEditTask: (task: any) => void;
@@ -103,6 +103,22 @@ const TaskList = ({ onEditTask }: TaskListProps) => {
                       );
                     }
 
+                    // Human readable repeat description (for "custom")
+                    let repeatDesc: React.ReactNode = (
+                      <span>Repeats: {task.repeatValue}</span>
+                    );
+                    if (task.repeatValue === "custom") {
+                      const ruleText = getRRuleText(task.customRrule);
+                      repeatDesc = (
+                        <span>
+                          Repeats:{" "}
+                          <span className="italic">
+                            {ruleText || "Custom"}
+                          </span>
+                        </span>
+                      );
+                    }
+
                     return (
                       <div
                         key={task.id}
@@ -117,7 +133,7 @@ const TaskList = ({ onEditTask }: TaskListProps) => {
                               </p>
                             )}
                             <div className="flex items-center gap-4 mt-2 text-xs text-muted-foreground">
-                              <span>Repeats: {task.repeatValue}</span>
+                              {repeatDesc}
                               {task.endDate && (
                                 <span>End: {new Date(task.endDate).toLocaleDateString()}</span>
                               )}
@@ -186,4 +202,3 @@ const TaskList = ({ onEditTask }: TaskListProps) => {
 };
 
 export default TaskList;
-
