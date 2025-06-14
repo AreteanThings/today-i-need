@@ -80,6 +80,9 @@ const TodayList = ({ onEditTask }: TodayListProps) => {
             <div key={category} className="mb-4">
               <div className="flex items-center gap-2 mb-2">
                 <CategoryBadge category={category} />
+                <span className="text-sm text-muted-foreground">
+                  {categoryTasks.length} {categoryTasks.length === 1 ? 'task' : 'tasks'}
+                </span>
               </div>
               <div className="space-y-2">
                 {(categoryTasks as any[])
@@ -168,6 +171,9 @@ const TodayList = ({ onEditTask }: TodayListProps) => {
     );
   };
 
+  // Calculate total active tasks for today
+  const totalActiveTasks = active.length + overdue.filter(task => !hiddenOverdueTasks.has(task.id)).length;
+
   return (
     <div className="p-4 pb-20">
       <div className="mb-4">
@@ -178,6 +184,9 @@ const TodayList = ({ onEditTask }: TodayListProps) => {
             day: 'numeric' 
           })}
         </h1>
+        <p className="text-muted-foreground">
+          {totalActiveTasks} active {totalActiveTasks === 1 ? 'task' : 'tasks'}
+        </p>
       </div>
 
       <TaskSection title="Active" tasks={active} type="active" />
