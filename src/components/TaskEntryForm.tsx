@@ -1,19 +1,16 @@
-
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Save, X } from "lucide-react";
-import { getRRuleText } from "@/utils/getRRuleText";
 import { useTasks } from "@/hooks/useTasks";
 import { useToast } from "@/hooks/use-toast";
 import { useEffect, useState } from "react";
-import CustomRepeatModal from "./CustomRepeatModal";
+import CategoryField from "./TaskEntryForm/CategoryField";
+import TitleField from "./TaskEntryForm/TitleField";
+import NotesField from "./TaskEntryForm/NotesField";
+import DateFields from "./TaskEntryForm/DateFields";
+import RepeatField from "./TaskEntryForm/RepeatField";
+import ShareField from "./TaskEntryForm/ShareField";
+import FormActions from "./TaskEntryForm/FormActions";
 
 const taskSchema = z.object({
   category: z.string().min(1, "Category is required"),
@@ -41,7 +38,7 @@ export default function TaskEntryForm({ onClose, editingTask }: TaskEntryFormPro
     handleSubmit,
     setValue,
     watch,
-    formState: { errors },
+    formState: { errors, isSubmitting },
     reset,
   } = useForm<TaskFormData>({
     resolver: zodResolver(taskSchema),
@@ -59,17 +56,7 @@ export default function TaskEntryForm({ onClose, editingTask }: TaskEntryFormPro
   const [customRepeatOpen, setCustomRepeatOpen] = useState(false);
   const [customRrule, setCustomRrule] = useState<string | undefined>(editingTask?.customRrule);
 
-  // Open custom modal if selected
-  useEffect(() => {
-    if (watch("repeatValue") === "custom") setCustomRepeatOpen(true);
-  }, [watch("repeatValue")]);
-
-  // Apply custom repeat value from modal
-  const handleApplyCustomRepeat = (rruleString: string) => {
-    setCustomRrule(rruleString);
-    setCustomRepeatOpen(false);
-  };
-
+  // Edit mode: reset form with existing task
   useEffect(() => {
     if (editingTask) {
       reset({
@@ -86,7 +73,6 @@ export default function TaskEntryForm({ onClose, editingTask }: TaskEntryFormPro
   }, [editingTask, reset]);
 
   const onSubmit = async (data: TaskFormData) => {
-    // Check for duplicate title (excluding current if editing)
     const existingTask = tasks.find(
       (task) =>
         task.title === data.title &&
@@ -147,144 +133,24 @@ export default function TaskEntryForm({ onClose, editingTask }: TaskEntryFormPro
   };
 
   return (
-    <>
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-        {/* Category */}
-        <div className="space-y-2">
-          <Label htmlFor="category" className="font-poppins">Category *</Label>
-          <Input
-            id="category"
-            {...register("category")}
-            placeholder="Enter category"
-            list="categories"
-            className={errors.category ? "border-destructive" : ""}
-          />
-          <datalist id="categories">
-            {categories.map((category) => (
-              <option key={category} value={category} />
-            ))}
-          </datalist>
-          {errors.category && (
-            <p className="text-sm text-destructive font-poppins">{errors.category.message}</p>
-          )}
-        </div>
-
-        {/* Title */}
-        <div className="space-y-2">
-          <Label htmlFor="title" className="font-poppins">Title *</Label>
-          <Input
-            id="title"
-            {...register("title")}
-            placeholder="Enter task title"
-            className={errors.title ? "border-destructive" : ""}
-          />
-          {errors.title && (
-            <p className="text-sm text-destructive font-poppins">{errors.title.message}</p>
-          )}
-        </div>
-
-        {/* Notes */}
-        <div className="space-y-2">
-          <Label htmlFor="subtitle" className="font-poppins">Notes</Label>
-          <Textarea
-            id="subtitle"
-            {...register("subtitle")}
-            placeholder="Enter notes (optional)"
-            rows={2}
-          />
-        </div>
-
-        {/* Start Date and End Date */}
-        <div className="grid grid-cols-2 gap-3">
-          <div className="space-y-2">
-            <Label htmlFor="startDate" className="font-poppins">Start Date *</Label>
-            <Input
-              id="startDate"
-              type="date"
-              {...register("startDate")}
-              className={errors.startDate ? "border-destructive" : ""}
-            />
-            {errors.startDate && (
-              <p className="text-sm text-destructive font-poppins">{errors.startDate.message}</p>
-            )}
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="endDate" className="font-poppins">End Date</Label>
-            <Input
-              id="endDate"
-              type="date"
-              {...register("endDate")}
-              placeholder="Leave blank for indefinite"
-            />
-          </div>
-        </div>
-
-        {/* Repeat Value */}
-        <div className="space-y-2">
-          <Label htmlFor="repeatValue" className="font-poppins">Repeat *</Label>
-          <Select
-            value={watch("repeatValue")}
-            onValueChange={(value) => setValue("repeatValue", value as any)}
-          >
-            <SelectTrigger className="font-poppins">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="daily" className="font-poppins">Daily</SelectItem>
-              <SelectItem value="weekly" className="font-poppins">Weekly</SelectItem>
-              <SelectItem value="monthly" className="font-poppins">Monthly</SelectItem>
-              <SelectItem value="yearly" className="font-poppins">Yearly</SelectItem>
-              <SelectItem value="custom" className="font-poppins">Custom</SelectItem>
-            </SelectContent>
-          </Select>
-          {/* Show preview if custom */}
-          {watch("repeatValue") === "custom" && customRrule && (
-            <div className="mt-2 bg-accent/20 p-2 rounded font-poppins text-xs">
-              {getRRuleText(customRrule)
-                ? <>Custom: <span className="font-semibold">{getRRuleText(customRrule)}</span></>
-                : <>Custom: <span className="font-mono">{customRrule}</span></>
-              }
-            </div>
-          )}
-        </div>
-
-        {/* Share */}
-        <div className="flex items-center space-x-2">
-          <Checkbox
-            id="isShared"
-            checked={watch("isShared")}
-            onCheckedChange={(checked) => setValue("isShared", !!checked)}
-          />
-          <Label htmlFor="isShared" className="font-poppins">Share this task</Label>
-        </div>
-
-        {/* Actions */}
-        <div className="flex gap-3 pt-4">
-          <Button
-            type="submit"
-            className="flex-1 font-poppins bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white border-0"
-          >
-            <Save className="h-4 w-4 mr-2" />
-            Save Task
-          </Button>
-          <Button
-            type="button"
-            variant="outline"
-            onClick={handleCancel}
-            className="font-poppins hover:bg-gradient-to-r hover:from-blue-600 hover:to-blue-700 hover:text-white hover:border-blue-700 transition-all hover:bg-none"
-          >
-            <X className="h-4 w-4 mr-2" />
-            Cancel
-          </Button>
-        </div>
-      </form>
-
-      <CustomRepeatModal
-        open={customRepeatOpen}
-        onClose={() => setCustomRepeatOpen(false)}
-        onApply={handleApplyCustomRepeat}
-        initialRRule={customRrule}
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+      <CategoryField register={register} categories={categories} error={errors.category?.message} />
+      <TitleField register={register} error={errors.title?.message} />
+      <NotesField register={register} />
+      <DateFields register={register} errors={errors} />
+      <RepeatField
+        repeatValue={watch("repeatValue")}
+        setRepeatValue={(v) => setValue("repeatValue", v as any)}
+        customRepeatOpen={customRepeatOpen}
+        setCustomRepeatOpen={setCustomRepeatOpen}
+        customRrule={customRrule}
+        setCustomRrule={setCustomRrule}
       />
-    </>
+      <ShareField
+        checked={watch("isShared")}
+        onCheckedChange={checked => setValue("isShared", !!checked)}
+      />
+      <FormActions onCancel={handleCancel} isSubmitting={isSubmitting} />
+    </form>
   );
 }
