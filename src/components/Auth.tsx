@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -30,24 +29,6 @@ const Auth = () => {
     setLoading(false);
   };
 
-  const handleGoogleSignIn = async () => {
-    setLoading(true);
-    await supabase.auth.signInWithOAuth({
-      provider: "google",
-      options: { redirectTo: window.location.origin }
-    });
-    setLoading(false);
-  };
-
-  const handleAppleSignIn = async () => {
-    setLoading(true);
-    await supabase.auth.signInWithOAuth({
-      provider: "apple",
-      options: { redirectTo: window.location.origin }
-    });
-    setLoading(false);
-  };
-
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
       <Card className="w-full max-w-md">
@@ -60,9 +41,9 @@ const Auth = () => {
           </CardDescription>
         </CardHeader>
         
-        {/* Social SSO Buttons */}
+        {/* Social SSO Buttons (Commented Out) */}
         <CardContent>
-          <div className="flex flex-col gap-2 mb-2">
+          {/* <div className="flex flex-col gap-2 mb-2">
             <Button
               type="button"
               variant="outline"
@@ -70,7 +51,6 @@ const Auth = () => {
               disabled={loading}
               className="w-full flex items-center justify-center gap-2"
             >
-              {/* Using no icon, just text */}
               Continue with Google
             </Button>
             <Button
@@ -89,7 +69,7 @@ const Auth = () => {
               or
             </span>
             <div className="border-b border-muted-foreground/10 w-full mb-2"></div>
-          </div>
+          </div> */}
         </CardContent>
 
         {/* Email / password */}
@@ -193,4 +173,3 @@ const Auth = () => {
 };
 
 export default Auth;
-
