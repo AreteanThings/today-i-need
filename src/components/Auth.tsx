@@ -6,7 +6,8 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/hooks/useAuth";
-import { Loader2 } from "lucide-react";
+import { Loader2, Apple, Google } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 
 const Auth = () => {
   const [email, setEmail] = useState("");
@@ -29,6 +30,24 @@ const Auth = () => {
     setLoading(false);
   };
 
+  const handleGoogleSignIn = async () => {
+    setLoading(true);
+    await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: { redirectTo: window.location.origin }
+    });
+    setLoading(false);
+  };
+
+  const handleAppleSignIn = async () => {
+    setLoading(true);
+    await supabase.auth.signInWithOAuth({
+      provider: "apple",
+      options: { redirectTo: window.location.origin }
+    });
+    setLoading(false);
+  };
+
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
       <Card className="w-full max-w-md">
@@ -41,6 +60,39 @@ const Auth = () => {
           </CardDescription>
         </CardHeader>
         
+        {/* Social SSO Buttons */}
+        <CardContent>
+          <div className="flex flex-col gap-2 mb-2">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={handleGoogleSignIn}
+              disabled={loading}
+              className="w-full flex items-center justify-center gap-2"
+            >
+              <Google />
+              Continue with Google
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={handleAppleSignIn}
+              disabled={loading}
+              className="w-full flex items-center justify-center gap-2"
+            >
+              <Apple />
+              Continue with Apple
+            </Button>
+          </div>
+          <div className="relative my-2">
+            <span className="absolute left-1/2 -translate-x-1/2 -top-3 bg-background px-2 text-xs text-muted-foreground">
+              or
+            </span>
+            <div className="border-b border-muted-foreground/10 w-full mb-2"></div>
+          </div>
+        </CardContent>
+
+        {/* Email / password */}
         <Tabs defaultValue="signin" className="w-full">
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="signin">Sign In</TabsTrigger>
