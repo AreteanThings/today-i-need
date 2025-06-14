@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -51,7 +50,7 @@ export default function CustomRepeatModal({ open, onClose, onApply, initialRRule
     if (initialRRule) setRRuleString(initialRRule);
   }, [initialRRule]);
 
-  // Always update preview string when relevant state changes
+  // Always update preview string and RRULE string when relevant state changes
   useEffect(() => {
     const buildRRuleString = () => {
       let options: Partial<Options> = {
@@ -66,7 +65,8 @@ export default function CustomRepeatModal({ open, onClose, onApply, initialRRule
         options.byweekday = byweekday.map(code => codeToRRuleWeekday(code)?.nth(parseInt(bysetpos, 10)));
       }
       const rule = new RRuleLib.RRule(options);
-      return rule.toString();
+      // Always output an RRULE string in "RRULE:..." format
+      return rule.toString().startsWith("RRULE:") ? rule.toString() : "RRULE:" + rule.toString();
     };
 
     const ruleStr = buildRRuleString();
@@ -93,7 +93,8 @@ export default function CustomRepeatModal({ open, onClose, onApply, initialRRule
     setBysetpos(e.target.value);
   };
   const handleApply = () => {
-    onApply(rruleString);
+    // always save as RRULE:...
+    onApply(rruleString && !rruleString.startsWith("RRULE:") ? "RRULE:" + rruleString : rruleString);
     onClose();
   };
 

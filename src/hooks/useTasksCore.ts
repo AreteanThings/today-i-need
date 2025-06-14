@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useAuth } from './useAuth';
 import { useToast } from './use-toast';
@@ -12,12 +11,31 @@ import {
   markTaskDoneInSupabase,
   undoTaskDoneInSupabase,
 } from './useTasks.supa';
+import { getRRuleText } from "@/utils/getRRuleText";
 
 export const useTasksCore = () => {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
   const { user } = useAuth();
   const { toast } = useToast();
+
+  // Utility: try to normalize/repair broken customRrule values in-memory
+  function repairCustomRrule(rrule?: string): string | undefined {
+    if (!rrule) return undefined;
+    // Accepts either 'RRULE:...' or 'FREQ=...'
+    let fixed = rrule.trim();
+    // Try parsing both with and without prefix to fix common mistakes
+    for (const candidate of [fixed, fixed.startsWith("RRULE:") ? fixed : "RRULE:" + fixed]) {
+      try {
+        // Try native parser
+        if (getRRuleText(candidate)) return candidate.startsWith("RRULE:") ? candidate : "RRULE:" + fixed;
+      } catch {
+        // continue
+      }
+    }
+    // Not repairable, return as-is
+    return fixed;
+  }
 
   // Load tasks from Supabase
   useEffect(() => {
@@ -36,7 +54,15 @@ export const useTasksCore = () => {
 
     try {
       const tasksWithCompletions = await fetchTasksFromSupabase(user.id);
-      setTasks(tasksWithCompletions);
+      // AUTO-REPAIR customRrule for all custom repeat tasks
+      const patchedTasks = tasksWithCompletions.map(task => {
+        if (task.repeatValue === "custom" && task.customRrule) {
+          const repaired = repairCustomRrule(task.customRrule);
+          return { ...task, customRrule: repaired };
+        }
+        return task;
+      });
+      setTasks(patchedTasks);
     } catch (error) {
       console.error('Error fetching tasks:', error);
       toast({
