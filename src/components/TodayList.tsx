@@ -1,8 +1,11 @@
+
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Clock, User, Calendar, Undo2 } from "lucide-react";
 import { useTasks } from "@/hooks/useTasks";
 import { useToast } from "@/hooks/use-toast";
+import { formatRelativeDate, formatRelativeDateTime } from "@/utils/dateUtils";
+import CategoryBadge from "./CategoryBadge";
 
 interface TodayListProps {
   onEditTask: (task: any) => void;
@@ -75,9 +78,9 @@ const TodayList = ({ onEditTask }: TodayListProps) => {
           .sort(([a], [b]) => a.localeCompare(b))
           .map(([category, categoryTasks]) => (
             <div key={category} className="mb-4">
-              <h3 className="text-sm font-medium text-muted-foreground mb-2 uppercase tracking-wide">
-                {category}
-              </h3>
+              <div className="flex items-center gap-2 mb-2">
+                <CategoryBadge category={category} />
+              </div>
               <div className="space-y-2">
                 {(categoryTasks as any[])
                   .sort((a, b) => a.title.localeCompare(b.title))
@@ -106,10 +109,7 @@ const TodayList = ({ onEditTask }: TodayListProps) => {
                             <div className="flex items-center gap-4 mt-2 text-xs text-muted-foreground">
                               <div className="flex items-center gap-1">
                                 <Clock className="h-3 w-3" />
-                                {new Date(task.completedAt).toLocaleTimeString([], {
-                                  hour: '2-digit',
-                                  minute: '2-digit'
-                                })}
+                                {formatRelativeDateTime(task.completedAt)}
                               </div>
                               <div className="flex items-center gap-1">
                                 <User className="h-3 w-3" />
@@ -122,7 +122,7 @@ const TodayList = ({ onEditTask }: TodayListProps) => {
                           {type === 'overdue' && task.dueDate && (
                             <div className="flex items-center gap-1 mt-2 text-xs text-destructive">
                               <Calendar className="h-3 w-3" />
-                              Due: {new Date(task.dueDate).toLocaleDateString()}
+                              Due: {formatRelativeDate(task.dueDate)}
                             </div>
                           )}
                         </div>

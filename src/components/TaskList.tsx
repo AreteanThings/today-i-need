@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Edit, Trash2 } from "lucide-react";
@@ -17,6 +18,8 @@ import {
 import { getNextDueDate, getMostRecentOverdueDate } from "@/hooks/useTasks.utils";
 import { getRRuleText } from "@/utils/getRRuleText";
 import { repairCustomRrule } from "@/utils/repairCustomRrule";
+import { formatRelativeDate } from "@/utils/dateUtils";
+import CategoryBadge from "./CategoryBadge";
 
 interface TaskListProps {
   onEditTask: (task: any) => void;
@@ -74,9 +77,12 @@ const TaskList = ({ onEditTask }: TaskListProps) => {
           .sort(([a], [b]) => a.localeCompare(b))
           .map(([category, categoryTasks]) => (
             <div key={category} className="mb-6">
-              <h2 className="text-lg font-semibold mb-3 text-foreground border-b border-border pb-1">
-                {category}
-              </h2>
+              <div className="flex items-center gap-2 mb-3 pb-2 border-b border-border">
+                <CategoryBadge category={category} />
+                <span className="text-sm text-muted-foreground">
+                  {categoryTasks.length} {categoryTasks.length === 1 ? 'task' : 'tasks'}
+                </span>
+              </div>
               <div className="space-y-3">
                 {categoryTasks
                   .sort((a, b) => a.title.localeCompare(b.title))
@@ -89,13 +95,13 @@ const TaskList = ({ onEditTask }: TaskListProps) => {
                     if (overdueDateStr) {
                       dueDisplay = (
                         <span className="text-destructive font-medium">
-                          Overdue: {new Date(overdueDateStr).toLocaleDateString()}
+                          Overdue: {formatRelativeDate(overdueDateStr)}
                         </span>
                       );
                     } else if (nextDueDateStr) {
                       dueDisplay = (
                         <span>
-                          Next Due: {new Date(nextDueDateStr).toLocaleDateString()}
+                          Next Due: {formatRelativeDate(nextDueDateStr)}
                         </span>
                       );
                     } else {
@@ -145,7 +151,7 @@ const TaskList = ({ onEditTask }: TaskListProps) => {
                             <div className="flex items-center gap-4 mt-2 text-xs text-muted-foreground">
                               {repeatDesc}
                               {task.endDate && (
-                                <span>End: {new Date(task.endDate).toLocaleDateString()}</span>
+                                <span>End: {formatRelativeDate(task.endDate)}</span>
                               )}
                               {task.isShared && (
                                 <span className="text-primary font-medium">Shared</span>
