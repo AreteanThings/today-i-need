@@ -1,5 +1,7 @@
-
 import { useState, useEffect } from "react";
+import { supabase } from "@/lib/supabase";
+import { useAuth } from "@/hooks/useAuth";
+import { useToast } from "@/hooks/use-toast";
 
 export interface Task {
   id: string;
@@ -17,88 +19,244 @@ export interface Task {
 
 export const useTasks = () => {
   const [tasks, setTasks] = useState<Task[]>([]);
+  const [loading, setLoading] = useState(true);
+  const { user } = useAuth();
+  const { toast } = useToast();
 
-  // Load tasks from localStorage
+  // Load tasks from Supabase
   useEffect(() => {
-    const savedTasks = localStorage.getItem("todayINeedTasks");
-    console.log("Loading tasks from localStorage:", savedTasks);
-    if (savedTasks) {
-      const parsedTasks = JSON.parse(savedTasks);
-      console.log("Parsed tasks:", parsedTasks);
-      setTasks(parsedTasks);
+    if (!user) {
+      setTasks([]);
+      setLoading(false);
+      return;
     }
-  }, []);
 
-  // Save tasks to localStorage
-  useEffect(() => {
-    console.log("Saving tasks to localStorage:", tasks);
-    localStorage.setItem("todayINeedTasks", JSON.stringify(tasks));
-  }, [tasks]);
+    fetchTasks();
+  }, [user]);
 
-  const generateId = () => Date.now().toString() + Math.random().toString(36).substr(2, 9);
+  const fetchTasks = async () => {
+    if (!user) return;
 
-  const addTask = (taskData: Omit<Task, "id" | "isActive" | "createdAt" | "completedDates">) => {
-    console.log("Adding task with data:", taskData);
-    const newTask: Task = {
-      ...taskData,
-      id: generateId(),
-      isActive: true,
-      createdAt: new Date().toISOString(),
-      completedDates: [],
-    };
-    console.log("Created new task:", newTask);
-    setTasks(prev => {
-      const updated = [...prev, newTask];
-      console.log("Updated tasks array:", updated);
-      return updated;
-    });
+    try {
+      // Fetch tasks
+      const { data: tasksData, error: tasksError } = await supabase
+        .from('tasks')
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('is_active', true);
+
+      if (tasksError) throw tasksError;
+
+      // Fetch task completions
+      const { data: completionsData, error: completionsError } = await supabase
+        .from('task_completions')
+        .select('*')
+        .eq('user_id', user.id);
+
+      if (completionsError) throw completionsError;
+
+      // Combine tasks with their completions
+      const tasksWithCompletions = (tasksData || []).map(task => ({
+        id: task.id,
+        category: task.category,
+        title: task.title,
+        subtitle: task.subtitle,
+        startDate: task.start_date,
+        endDate: task.end_date,
+        repeatValue: task.repeat_value,
+        isShared: task.is_shared,
+        isActive: task.is_active,
+        createdAt: task.created_at,
+        completedDates: (completionsData || [])
+          .filter(completion => completion.task_id === task.id)
+          .map(completion => ({
+            date: completion.completed_date,
+            completedAt: completion.completed_at,
+            completedBy: "You" // In future, this could be actual user names
+          }))
+      }));
+
+      setTasks(tasksWithCompletions);
+    } catch (error) {
+      console.error('Error fetching tasks:', error);
+      toast({
+        title: "Error Loading Tasks",
+        description: "Failed to load your tasks. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const updateTask = (id: string, updates: Partial<Task>) => {
-    setTasks(prev => prev.map(task => 
-      task.id === id ? { ...task, ...updates } : task
-    ));
+  const addTask = async (taskData: Omit<Task, "id" | "isActive" | "createdAt" | "completedDates">) => {
+    if (!user) return;
+
+    try {
+      const { data, error } = await supabase
+        .from('tasks')
+        .insert({
+          user_id: user.id,
+          category: taskData.category,
+          title: taskData.title,
+          subtitle: taskData.subtitle,
+          start_date: taskData.startDate,
+          end_date: taskData.endDate,
+          repeat_value: taskData.repeatValue,
+          is_shared: taskData.isShared,
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      // Add to local state
+      const newTask: Task = {
+        id: data.id,
+        category: data.category,
+        title: data.title,
+        subtitle: data.subtitle,
+        startDate: data.start_date,
+        endDate: data.end_date,
+        repeatValue: data.repeat_value,
+        isShared: data.is_shared,
+        isActive: data.is_active,
+        createdAt: data.created_at,
+        completedDates: [],
+      };
+
+      setTasks(prev => [...prev, newTask]);
+    } catch (error) {
+      console.error('Error adding task:', error);
+      throw error;
+    }
   };
 
-  const deleteTask = (id: string) => {
-    setTasks(prev => prev.filter(task => task.id !== id));
+  const updateTask = async (id: string, updates: Partial<Task>) => {
+    if (!user) return;
+
+    try {
+      const { error } = await supabase
+        .from('tasks')
+        .update({
+          category: updates.category,
+          title: updates.title,
+          subtitle: updates.subtitle,
+          start_date: updates.startDate,
+          end_date: updates.endDate,
+          repeat_value: updates.repeatValue,
+          is_shared: updates.isShared,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', id)
+        .eq('user_id', user.id);
+
+      if (error) throw error;
+
+      // Update local state
+      setTasks(prev => prev.map(task => 
+        task.id === id ? { ...task, ...updates } : task
+      ));
+    } catch (error) {
+      console.error('Error updating task:', error);
+      throw error;
+    }
   };
 
-  const markTaskDone = (taskId: string, isOverdue = false) => {
+  const deleteTask = async (id: string) => {
+    if (!user) return;
+
+    try {
+      const { error } = await supabase
+        .from('tasks')
+        .update({ is_active: false })
+        .eq('id', id)
+        .eq('user_id', user.id);
+
+      if (error) throw error;
+
+      // Remove from local state
+      setTasks(prev => prev.filter(task => task.id !== id));
+    } catch (error) {
+      console.error('Error deleting task:', error);
+      throw error;
+    }
+  };
+
+  const markTaskDone = async (taskId: string, isOverdue = false) => {
+    if (!user) return;
+
     const today = new Date().toISOString().split('T')[0];
     const now = new Date().toISOString();
-    
-    setTasks(prev => prev.map(task => {
-      if (task.id === taskId) {
-        const completedDate = isOverdue ? task.completedDates[task.completedDates.length - 1]?.date || today : today;
-        const newCompletedDates = task.completedDates.filter(cd => cd.date !== completedDate);
-        newCompletedDates.push({
-          date: completedDate,
-          completedAt: now,
-          completedBy: "You" // In future, this would be the actual user name
+
+    try {
+      // Get the task to determine the actual task ID (remove overdue suffix if present)
+      const actualTaskId = taskId.includes('-') ? taskId.split('-')[0] : taskId;
+      const completedDate = isOverdue ? taskId.split('-')[1] || today : today;
+
+      const { error } = await supabase
+        .from('task_completions')
+        .upsert({
+          task_id: actualTaskId,
+          user_id: user.id,
+          completed_date: completedDate,
+          completed_at: now,
         });
-        
-        return {
-          ...task,
-          completedDates: newCompletedDates
-        };
-      }
-      return task;
-    }));
+
+      if (error) throw error;
+
+      // Update local state
+      setTasks(prev => prev.map(task => {
+        if (task.id === actualTaskId) {
+          const newCompletedDates = task.completedDates.filter(cd => cd.date !== completedDate);
+          newCompletedDates.push({
+            date: completedDate,
+            completedAt: now,
+            completedBy: "You"
+          });
+          
+          return {
+            ...task,
+            completedDates: newCompletedDates
+          };
+        }
+        return task;
+      }));
+    } catch (error) {
+      console.error('Error marking task done:', error);
+      throw error;
+    }
   };
 
-  const undoTaskDone = (taskId: string) => {
+  const undoTaskDone = async (taskId: string) => {
+    if (!user) return;
+
     const today = new Date().toISOString().split('T')[0];
-    
-    setTasks(prev => prev.map(task => {
-      if (task.id === taskId) {
-        return {
-          ...task,
-          completedDates: task.completedDates.filter(cd => cd.date !== today)
-        };
-      }
-      return task;
-    }));
+
+    try {
+      const { error } = await supabase
+        .from('task_completions')
+        .delete()
+        .eq('task_id', taskId)
+        .eq('user_id', user.id)
+        .eq('completed_date', today);
+
+      if (error) throw error;
+
+      // Update local state
+      setTasks(prev => prev.map(task => {
+        if (task.id === taskId) {
+          return {
+            ...task,
+            completedDates: task.completedDates.filter(cd => cd.date !== today)
+          };
+        }
+        return task;
+      }));
+    } catch (error) {
+      console.error('Error undoing task:', error);
+      throw error;
+    }
   };
 
   const isTaskDueOnDate = (task: Task, date: Date): boolean => {
@@ -120,8 +278,7 @@ export const useTasks = () => {
       case "yearly":
         return date.getMonth() === startDate.getMonth() && date.getDate() === startDate.getDate();
       case "custom":
-        // TODO: Implement custom repeat logic
-        return daysDiff % 1 === 0; // Default to daily for now
+        return daysDiff % 1 === 0;
       default:
         return false;
     }
@@ -131,20 +288,14 @@ export const useTasks = () => {
     const today = new Date();
     const todayStr = today.toISOString().split('T')[0];
     
-    console.log("Getting today's tasks for date:", todayStr);
-    console.log("All tasks:", tasks);
-    
     const active: any[] = [];
     const done: any[] = [];
     const overdue: any[] = [];
     
     tasks.forEach(task => {
-      console.log(`Checking task: ${task.title}, isActive: ${task.isActive}`);
       if (!task.isActive) return;
       
-      // Check if task is due today
       const isDueToday = isTaskDueOnDate(task, today);
-      console.log(`Task ${task.title} due today: ${isDueToday}`);
       
       if (isDueToday) {
         const todayCompletion = task.completedDates.find(cd => cd.date === todayStr);
@@ -160,16 +311,13 @@ export const useTasks = () => {
         }
       }
       
-      // Check for overdue tasks - only check dates from start date onwards
       const startDate = new Date(task.startDate);
       const yesterday = new Date(today);
       yesterday.setDate(yesterday.getDate() - 1);
       
-      // Only check for overdue if the task started before today
       if (startDate < today) {
         let checkDate = new Date(Math.max(startDate.getTime(), startDate.getTime()));
         
-        // Only check dates from start date until yesterday (not today)
         while (checkDate <= yesterday) {
           if (isTaskDueOnDate(task, checkDate)) {
             const checkDateStr = checkDate.toISOString().split('T')[0];
@@ -179,7 +327,7 @@ export const useTasks = () => {
               overdue.push({
                 ...task,
                 dueDate: checkDate.toISOString(),
-                id: `${task.id}-${checkDateStr}` // Unique ID for overdue instances
+                id: `${task.id}-${checkDateStr}`
               });
             }
           }
@@ -188,7 +336,6 @@ export const useTasks = () => {
       }
     });
     
-    console.log("Today's tasks result:", { active, done, overdue });
     return { active, done, overdue };
   };
 
@@ -196,6 +343,7 @@ export const useTasks = () => {
 
   return {
     tasks,
+    loading,
     addTask,
     updateTask,
     deleteTask,

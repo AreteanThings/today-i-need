@@ -2,16 +2,19 @@
 import { useState, useEffect } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { Plus, List, Calendar, Info } from "lucide-react";
+import { Plus, List, Calendar, Info, LogOut } from "lucide-react";
 import TaskEntry from "@/components/TaskEntry";
 import TaskList from "@/components/TaskList";
 import TodayList from "@/components/TodayList";
 import About from "@/components/About";
+import Auth from "@/components/Auth";
+import { useAuth } from "@/hooks/useAuth";
 
 const Index = () => {
   const [activeTab, setActiveTab] = useState("today");
   const [showTaskEntry, setShowTaskEntry] = useState(false);
   const [editingTask, setEditingTask] = useState(null);
+  const { user, loading, signOut } = useAuth();
 
   const handleEditTask = (task: any) => {
     setEditingTask(task);
@@ -22,6 +25,23 @@ const Index = () => {
     setShowTaskEntry(false);
     setEditingTask(null);
   };
+
+  // Show loading state
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show auth screen if not authenticated
+  if (!user) {
+    return <Auth />;
+  }
 
   if (showTaskEntry) {
     return (
@@ -38,16 +58,26 @@ const Index = () => {
         {/* Header */}
         <div className="header-gradient text-white p-4 flex justify-between items-center h-16">
           <h1 className="text-2xl font-bold">Today I Need</h1>
-          {activeTab !== "about" && (
+          <div className="flex items-center gap-2">
+            {activeTab !== "about" && (
+              <Button
+                size="sm"
+                variant="secondary"
+                onClick={() => setShowTaskEntry(true)}
+              >
+                <Plus className="h-4 w-4 mr-1" />
+                Add Task
+              </Button>
+            )}
             <Button
               size="sm"
-              variant="secondary"
-              onClick={() => setShowTaskEntry(true)}
+              variant="ghost"
+              onClick={signOut}
+              className="hover:bg-white/20 hover:text-white"
             >
-              <Plus className="h-4 w-4 mr-1" />
-              Add Task
+              <LogOut className="h-4 w-4" />
             </Button>
-          )}
+          </div>
         </div>
 
         {/* Navigation */}
