@@ -1,7 +1,8 @@
-import { useState, useEffect } from "react";
-import { supabase } from "@/lib/supabase";
-import { useAuth } from "@/hooks/useAuth";
-import { useToast } from "@/hooks/use-toast";
+import { useState, useEffect } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from './useAuth';
+import { useToast } from './use-toast';
 
 export interface Task {
   id: string;
