@@ -77,7 +77,7 @@ export const updateTaskInSupabase = async (id: string, updates: Partial<Task>, u
       end_date: updates.endDate,
       repeat_value: updates.repeatValue,
       is_shared: updates.isShared,
-      updated_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),  // Now this column exists, so no error!
     })
     .eq('id', id)
     .eq('user_id', userId);

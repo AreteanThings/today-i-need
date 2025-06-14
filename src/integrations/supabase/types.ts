@@ -53,6 +53,7 @@ export type Database = {
           start_date: string
           subtitle: string | null
           title: string
+          updated_at: string | null
           user_id: string
         }
         Insert: {
@@ -66,6 +67,7 @@ export type Database = {
           start_date: string
           subtitle?: string | null
           title: string
+          updated_at?: string | null
           user_id: string
         }
         Update: {
@@ -79,6 +81,7 @@ export type Database = {
           start_date?: string
           subtitle?: string | null
           title?: string
+          updated_at?: string | null
           user_id?: string
         }
         Relationships: []
