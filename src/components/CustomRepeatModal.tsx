@@ -4,7 +4,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogC
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from "@/components/ui/select";
-import { RRule, rrulestr, Weekday } from "rrule";
+
+// Fix: Use import * as RRuleLib for universal access to static/class members
+import * as RRuleLib from "rrule";
 
 // Map string codes to RRule weekday instances
 const WEEKDAY_CODES = [
@@ -17,15 +19,16 @@ const WEEKDAY_CODES = [
   { label: "Sunday", code: "SU" },
 ];
 
-const codeToRRuleWeekday = (code: string): Weekday | undefined => {
+// Map code to Weekday instance
+const codeToRRuleWeekday = (code: string): RRuleLib.Weekday | undefined => {
   switch (code) {
-    case "MO": return RRule.MO;
-    case "TU": return RRule.TU;
-    case "WE": return RRule.WE;
-    case "TH": return RRule.TH;
-    case "FR": return RRule.FR;
-    case "SA": return RRule.SA;
-    case "SU": return RRule.SU;
+    case "MO": return RRuleLib.RRule.MO;
+    case "TU": return RRuleLib.RRule.TU;
+    case "WE": return RRuleLib.RRule.WE;
+    case "TH": return RRuleLib.RRule.TH;
+    case "FR": return RRuleLib.RRule.FR;
+    case "SA": return RRuleLib.RRule.SA;
+    case "SU": return RRuleLib.RRule.SU;
     default: return undefined;
   }
 };
@@ -38,7 +41,7 @@ type CustomRepeatModalProps = {
 };
 
 export default function CustomRepeatModal({ open, onClose, onApply, initialRRule }: CustomRepeatModalProps) {
-  const [freq, setFreq] = useState<number>(RRule.DAILY);
+  const [freq, setFreq] = useState<number>(RRuleLib.RRule.DAILY);
   const [interval, setInterval] = useState(1);
   // Use weekday code strings like "MO", "TU", etc.
   const [byweekday, setByweekday] = useState<string[]>([]);
@@ -52,21 +55,22 @@ export default function CustomRepeatModal({ open, onClose, onApply, initialRRule
 
   // build the RRULE string
   const buildRRuleString = () => {
-    let options: Partial<RRule.Options> = {
+    let options: Partial<RRuleLib.RRule.Options> = {
       freq,
       interval,
     };
 
-    if (freq === RRule.WEEKLY && byweekday.length > 0) {
+    if (freq === RRuleLib.RRule.WEEKLY && byweekday.length > 0) {
       options.byweekday = byweekday.map(code => codeToRRuleWeekday(code));
     }
 
-    if ((freq === RRule.MONTHLY || freq === RRule.YEARLY) && bysetpos && byweekday.length > 0) {
+    if ((freq === RRuleLib.RRule.MONTHLY || freq === RRuleLib.RRule.YEARLY) && bysetpos && byweekday.length > 0) {
       // e.g., 2nd Tuesday = bysetpos: 2, byweekday: TU.nth(2)
       options.byweekday = byweekday.map(code => codeToRRuleWeekday(code)?.nth(parseInt(bysetpos, 10)));
     }
 
-    const rule = new RRule(options);
+    // Create rule via RRuleLib.RRule
+    const rule = new RRuleLib.RRule(options);
     return rule.toString();
   };
 
@@ -111,7 +115,7 @@ export default function CustomRepeatModal({ open, onClose, onApply, initialRRule
   // Live preview text
   let preview = "";
   try {
-    const r = rrulestr(rruleString);
+    const r = RRuleLib.rrulestr(rruleString);
     preview = r.toText();
   } catch {
     preview = "";
@@ -132,10 +136,10 @@ export default function CustomRepeatModal({ open, onClose, onApply, initialRRule
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value={RRule.DAILY.toString()}>Daily</SelectItem>
-                <SelectItem value={RRule.WEEKLY.toString()}>Weekly</SelectItem>
-                <SelectItem value={RRule.MONTHLY.toString()}>Monthly</SelectItem>
-                <SelectItem value={RRule.YEARLY.toString()}>Yearly</SelectItem>
+                <SelectItem value={RRuleLib.RRule.DAILY.toString()}>Daily</SelectItem>
+                <SelectItem value={RRuleLib.RRule.WEEKLY.toString()}>Weekly</SelectItem>
+                <SelectItem value={RRuleLib.RRule.MONTHLY.toString()}>Monthly</SelectItem>
+                <SelectItem value={RRuleLib.RRule.YEARLY.toString()}>Yearly</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -144,14 +148,14 @@ export default function CustomRepeatModal({ open, onClose, onApply, initialRRule
             <label className="font-poppins block mb-2">Every</label>
             <Input type="number" min={1} value={interval} onChange={handleIntervalChange} className="w-20 inline-block mr-2" />
             <span className="text-muted-foreground">
-              {freq === RRule.DAILY && "day(s)"}
-              {freq === RRule.WEEKLY && "week(s)"}
-              {freq === RRule.MONTHLY && "month(s)"}
-              {freq === RRule.YEARLY && "year(s)"}
+              {freq === RRuleLib.RRule.DAILY && "day(s)"}
+              {freq === RRuleLib.RRule.WEEKLY && "week(s)"}
+              {freq === RRuleLib.RRule.MONTHLY && "month(s)"}
+              {freq === RRuleLib.RRule.YEARLY && "year(s)"}
             </span>
           </div>
           {/* Weekdays, if Weekly or Monthly/Yearly (for nth-weekday) */}
-          {(freq === RRule.WEEKLY || freq === RRule.MONTHLY || freq === RRule.YEARLY) && (
+          {(freq === RRuleLib.RRule.WEEKLY || freq === RRuleLib.RRule.MONTHLY || freq === RRuleLib.RRule.YEARLY) && (
             <div>
               <label className="font-poppins block mb-2">On</label>
               <div className="flex flex-wrap gap-2">
@@ -170,7 +174,7 @@ export default function CustomRepeatModal({ open, onClose, onApply, initialRRule
             </div>
           )}
           {/* nth 'setpos' for Monthly/Yearly */}
-          {(freq === RRule.MONTHLY || freq === RRule.YEARLY) && (
+          {(freq === RRuleLib.RRule.MONTHLY || freq === RRuleLib.RRule.YEARLY) && (
             <div>
               <label className="font-poppins block mb-2">Which (optional)</label>
               <Input
@@ -201,3 +205,4 @@ export default function CustomRepeatModal({ open, onClose, onApply, initialRRule
 }
 
 // ... done!
+
