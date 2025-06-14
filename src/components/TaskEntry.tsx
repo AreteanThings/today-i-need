@@ -12,6 +12,7 @@ import { ArrowLeft, Save, X } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useTasks } from "@/hooks/useTasks";
 import CustomRepeatModal from "./CustomRepeatModal";
+import { getRRuleText } from "@/utils/getRRuleText";
 
 const taskSchema = z.object({
   category: z.string().min(1, "Category is required"),
@@ -262,7 +263,10 @@ const TaskEntry = ({ onClose, editingTask }: TaskEntryProps) => {
               {/* Show preview if custom */}
               {watch("repeatValue") === "custom" && customRrule && (
                 <div className="mt-2 bg-accent/20 p-2 rounded font-poppins text-xs">
-                  Custom: {customRrule}
+                  {getRRuleText(customRrule) 
+                    ? <>Custom: <span className="font-semibold">{getRRuleText(customRrule)}</span></> 
+                    : <>Custom: <span className="font-mono">{customRrule}</span></>
+                  }
                 </div>
               )}
             </div>
