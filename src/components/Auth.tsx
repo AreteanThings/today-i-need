@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/hooks/useAuth";
-import { Loader2, Apple, Google } from "lucide-react";
+import { Loader2, Apple } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
 const Auth = () => {
@@ -70,7 +70,7 @@ const Auth = () => {
               disabled={loading}
               className="w-full flex items-center justify-center gap-2"
             >
-              <Google />
+              {/* Using no icon, just text */}
               Continue with Google
             </Button>
             <Button
@@ -193,3 +193,4 @@ const Auth = () => {
 };
 
 export default Auth;
+
