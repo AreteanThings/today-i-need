@@ -24,11 +24,16 @@ const RepeatField = ({
   customRrule,
   setCustomRrule,
 }: RepeatFieldProps) => {
-  // Modified: Only auto-open custom modal if repeatValue changed to "custom" from user selection (not when form loads with value)
-  // We do this by tracking the last value using a ref
+  // Only auto-open custom modal if user selects "custom" from dropdown, not on initial mount/edit
   const prevRepeatValue = React.useRef<string>(repeatValue);
+  const didMount = React.useRef(false);
 
   useEffect(() => {
+    if (!didMount.current) {
+      didMount.current = true;
+      prevRepeatValue.current = repeatValue;
+      return;
+    }
     if (repeatValue === "custom" && prevRepeatValue.current !== "custom") {
       setCustomRepeatOpen(true);
     }
