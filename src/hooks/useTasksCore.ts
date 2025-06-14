@@ -12,6 +12,7 @@ import {
   undoTaskDoneInSupabase,
 } from './useTasks.supa';
 import { getRRuleText } from "@/utils/getRRuleText";
+import { repairCustomRrule } from "@/utils/repairCustomRrule";
 
 export const useTasksCore = () => {
   const [tasks, setTasks] = useState<Task[]>([]);

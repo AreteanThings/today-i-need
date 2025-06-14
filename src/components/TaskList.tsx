@@ -15,7 +15,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { getNextDueDate, getMostRecentOverdueDate } from "@/hooks/useTasks.utils";
-import { getRRuleText } from "@/utils/getRRuleText";
+import { getRRuleText, repairCustomRrule } from "@/utils/getRRuleText";
 
 interface TaskListProps {
   onEditTask: (task: any) => void;
@@ -108,7 +108,8 @@ const TaskList = ({ onEditTask }: TaskListProps) => {
                       <span>Repeats: {task.repeatValue}</span>
                     );
                     if (task.repeatValue === "custom") {
-                      const ruleText = getRRuleText(task.customRrule);
+                      const repairedRule = repairCustomRrule(task.customRrule);
+                      const ruleText = getRRuleText(repairedRule);
                       repeatDesc = (
                         <span>
                           Repeats:{" "}

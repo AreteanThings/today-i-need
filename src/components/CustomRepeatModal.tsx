@@ -94,7 +94,8 @@ export default function CustomRepeatModal({ open, onClose, onApply, initialRRule
   };
   const handleApply = () => {
     // always save as RRULE:...
-    onApply(rruleString && !rruleString.startsWith("RRULE:") ? "RRULE:" + rruleString : rruleString);
+    const repaired = rruleString && !rruleString.startsWith("RRULE:") ? "RRULE:" + rruleString : rruleString;
+    onApply(repaired);
     onClose();
   };
 
