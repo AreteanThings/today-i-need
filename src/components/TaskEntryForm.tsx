@@ -1,9 +1,12 @@
+
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useTasks } from "@/hooks/useTasks";
 import { useToast } from "@/hooks/use-toast";
+import { useLoading } from "@/contexts/LoadingContext";
 import { useEffect, useState } from "react";
+import { LoadingSpinner } from "./LoadingSpinner";
 import CategoryField from "./TaskEntryForm/CategoryField";
 import TitleField from "./TaskEntryForm/TitleField";
 import NotesField from "./TaskEntryForm/NotesField";
@@ -13,13 +16,21 @@ import ShareField from "./TaskEntryForm/ShareField";
 import FormActions from "./TaskEntryForm/FormActions";
 
 const taskSchema = z.object({
-  category: z.string().min(1, "Category is required"),
-  title: z.string().min(1, "Title is required"),
+  category: z.string().min(1, "Category is required").max(50, "Category must be less than 50 characters"),
+  title: z.string().min(2, "Title must be at least 2 characters").max(100, "Title must be less than 100 characters"),
   subtitle: z.string().optional(),
   startDate: z.string().min(1, "Start date is required"),
   endDate: z.string().optional(),
   repeatValue: z.enum(["daily", "weekly", "monthly", "yearly", "custom"]),
   isShared: z.boolean().default(false),
+}).refine((data) => {
+  if (data.endDate && data.startDate) {
+    return new Date(data.endDate) >= new Date(data.startDate);
+  }
+  return true;
+}, {
+  message: "End date must be after start date",
+  path: ["endDate"],
 });
 
 type TaskFormData = z.infer<typeof taskSchema>;
@@ -32,6 +43,7 @@ interface TaskEntryFormProps {
 export default function TaskEntryForm({ onClose, editingTask }: TaskEntryFormProps) {
   const { toast } = useToast();
   const { addTask, updateTask, tasks, categories } = useTasks();
+  const { isLoading } = useLoading();
 
   const {
     register,
@@ -55,6 +67,8 @@ export default function TaskEntryForm({ onClose, editingTask }: TaskEntryFormPro
 
   const [customRepeatOpen, setCustomRepeatOpen] = useState(false);
   const [customRrule, setCustomRrule] = useState<string | undefined>(editingTask?.customRrule);
+
+  const isFormLoading = isSubmitting || isLoading('addTask') || isLoading(`updateTask-${editingTask?.id}`);
 
   // Edit mode: reset form with existing task
   useEffect(() => {
@@ -96,10 +110,6 @@ export default function TaskEntryForm({ onClose, editingTask }: TaskEntryFormPro
           customRrule: data.repeatValue === "custom" ? customRrule : undefined,
           endDate: data.endDate || undefined
         });
-        toast({
-          title: "Task Updated",
-          description: "Your task has been updated successfully.",
-        });
       } else {
         const taskData = {
           category: data.category,
@@ -112,24 +122,19 @@ export default function TaskEntryForm({ onClose, editingTask }: TaskEntryFormPro
           customRrule: data.repeatValue === "custom" ? customRrule : undefined,
         };
         await addTask(taskData);
-        toast({
-          title: "Task Created",
-          description: "Your task has been created successfully.",
-        });
       }
       onClose();
     } catch (error) {
-      toast({
-        title: "Error",
-        description: "There was a problem saving your task.",
-        variant: "destructive",
-      });
+      // Error handling is now done in the hook with toasts
+      console.error('Form submission error:', error);
     }
   };
 
   const handleCancel = () => {
-    reset();
-    onClose();
+    if (!isFormLoading) {
+      reset();
+      onClose();
+    }
   };
 
   return (
@@ -150,7 +155,17 @@ export default function TaskEntryForm({ onClose, editingTask }: TaskEntryFormPro
         checked={watch("isShared")}
         onCheckedChange={checked => setValue("isShared", !!checked)}
       />
-      <FormActions onCancel={handleCancel} isSubmitting={isSubmitting} />
+      
+      {isFormLoading && (
+        <div className="flex justify-center py-4">
+          <LoadingSpinner text="Saving task..." />
+        </div>
+      )}
+      
+      <FormActions 
+        onCancel={handleCancel} 
+        isSubmitting={isFormLoading}
+      />
     </form>
   );
 }
