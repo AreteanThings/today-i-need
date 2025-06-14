@@ -127,7 +127,7 @@ export const useTasks = () => {
         subtitle: data.subtitle,
         startDate: data.start_date,
         endDate: data.end_date,
-        repeatValue: data.repeat_value,
+        repeatValue: asRepeatValue(data.repeat_value),
         isShared: data.is_shared,
         isActive: data.is_active,
         createdAt: data.created_at,
@@ -164,7 +164,15 @@ export const useTasks = () => {
 
       // Update local state
       setTasks(prev => prev.map(task => 
-        task.id === id ? { ...task, ...updates } : task
+        task.id === id
+          ? {
+              ...task,
+              ...updates,
+              repeatValue: updates.repeatValue
+                ? asRepeatValue(updates.repeatValue)
+                : task.repeatValue,
+            }
+          : task
       ));
     } catch (error) {
       console.error('Error updating task:', error);
