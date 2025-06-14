@@ -1,4 +1,3 @@
-
 import { Task } from "@/types/task";
 
 // Utility function to make sure repeatValue is valid
@@ -32,4 +31,53 @@ export const isTaskDueOnDate = (task: Task, date: Date): boolean => {
     default:
       return false;
   }
+};
+
+// Helper: Get the next due date (after today) for a given task
+export const getNextDueDate = (task: Task): string | null => {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  let checkDate = new Date(today);
+  let cycles = 0;
+
+  // Find the next due date that's not completed yet, not in the past, and not today
+  while (cycles < 365) { // Limit lookahead for performance/safety
+    checkDate.setDate(checkDate.getDate() + 1);
+    if (task.endDate && checkDate > new Date(task.endDate)) break;
+    if (isTaskDueOnDate(task, checkDate)) {
+      const checkDateStr = checkDate.toISOString().split('T')[0];
+      if (!task.completedDates.some(cd => cd.date === checkDateStr)) {
+        return checkDateStr;
+      }
+    }
+    cycles++;
+  }
+  return null; // No next due date found
+};
+
+// Helper: Get the most recent overdue date for uncompleted occurrences
+export const getMostRecentOverdueDate = (task: Task): string | null => {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  let mostRecent: Date | null = null;
+  let checkDate = new Date(task.startDate);
+  checkDate.setHours(0, 0, 0, 0);
+
+  const endLimit = new Date(today);
+  endLimit.setDate(endLimit.getDate() - 1); // Only consider before today
+
+  while (checkDate <= endLimit) {
+    if (task.endDate && checkDate > new Date(task.endDate)) break;
+    if (isTaskDueOnDate(task, checkDate)) {
+      const checkDateStr = checkDate.toISOString().split('T')[0];
+      if (!task.completedDates.some(cd => cd.date === checkDateStr)) {
+        if (!mostRecent || checkDate > mostRecent) {
+          mostRecent = new Date(checkDate);
+        }
+      }
+    }
+    checkDate.setDate(checkDate.getDate() + 1);
+  }
+
+  return mostRecent ? mostRecent.toISOString().split('T')[0] : null;
 };

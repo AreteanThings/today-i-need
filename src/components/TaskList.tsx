@@ -15,6 +15,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { getNextDueDate, getMostRecentOverdueDate } from "@/hooks/useTasks.utils";
 
 interface TaskListProps {
   onEditTask: (task: any) => void;
@@ -78,77 +79,104 @@ const TaskList = ({ onEditTask }: TaskListProps) => {
               <div className="space-y-3">
                 {categoryTasks
                   .sort((a, b) => a.title.localeCompare(b.title))
-                  .map((task) => (
-                    <div
-                      key={task.id}
-                      className="p-4 rounded-lg border bg-card"
-                    >
-                      <div className="flex justify-between items-start">
-                        <div className="flex-1">
-                          <h3 className="font-medium text-foreground">{task.title}</h3>
-                          {task.subtitle && (
-                            <p className="text-sm text-muted-foreground mt-1">
-                              {task.subtitle}
-                            </p>
-                          )}
-                          <div className="flex items-center gap-4 mt-2 text-xs text-muted-foreground">
-                            <span>Repeats: {task.repeatValue}</span>
-                            <span>Start: {new Date(task.startDate).toLocaleDateString()}</span>
-                            {task.endDate && (
-                              <span>End: {new Date(task.endDate).toLocaleDateString()}</span>
+                  .map((task) => {
+                    // Determine next due date and overdue info
+                    const overdueDateStr = getMostRecentOverdueDate(task);
+                    const nextDueDateStr = getNextDueDate(task);
+
+                    let dueDisplay = null;
+                    if (overdueDateStr) {
+                      dueDisplay = (
+                        <span className="text-destructive font-medium">
+                          Overdue: {new Date(overdueDateStr).toLocaleDateString()}
+                        </span>
+                      );
+                    } else if (nextDueDateStr) {
+                      dueDisplay = (
+                        <span>
+                          Next Due: {new Date(nextDueDateStr).toLocaleDateString()}
+                        </span>
+                      );
+                    } else {
+                      dueDisplay = (
+                        <span className="text-muted-foreground">No upcoming due dates</span>
+                      );
+                    }
+
+                    return (
+                      <div
+                        key={task.id}
+                        className="p-4 rounded-lg border bg-card"
+                      >
+                        <div className="flex justify-between items-start">
+                          <div className="flex-1">
+                            <h3 className="font-medium text-foreground">{task.title}</h3>
+                            {task.subtitle && (
+                              <p className="text-sm text-muted-foreground mt-1">
+                                {task.subtitle}
+                              </p>
                             )}
-                            {task.isShared && (
-                              <span className="text-primary font-medium">Shared</span>
-                            )}
+                            <div className="flex items-center gap-4 mt-2 text-xs text-muted-foreground">
+                              <span>Repeats: {task.repeatValue}</span>
+                              {task.endDate && (
+                                <span>End: {new Date(task.endDate).toLocaleDateString()}</span>
+                              )}
+                              {task.isShared && (
+                                <span className="text-primary font-medium">Shared</span>
+                              )}
+                            </div>
+                            <div className="mt-2 text-xs">
+                              {dueDisplay}
+                            </div>
+                          </div>
+                          
+                          <div className="flex gap-2 ml-3">
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => onEditTask(task)}
+                              className="hover:bg-gradient-to-r hover:from-blue-600 hover:to-blue-700 hover:text-white hover:border-blue-700 transition-all hover:bg-none"
+                            >
+                              <Edit className="h-3 w-3" />
+                            </Button>
+                            
+                            <AlertDialog>
+                              <AlertDialogTrigger asChild>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => setDeletingTask(task)}
+                                  className="hover:bg-gradient-to-r hover:from-blue-600 hover:to-blue-700 hover:text-white hover:border-blue-700 transition-all hover:bg-none"
+                                >
+                                  <Trash2 className="h-3 w-3" />
+                                </Button>
+                              </AlertDialogTrigger>
+                              <AlertDialogContent>
+                                <AlertDialogHeader>
+                                  <AlertDialogTitle>Delete Task</AlertDialogTitle>
+                                  <AlertDialogDescription>
+                                    {task.isShared 
+                                      ? "This will remove it for everyone. Are you sure you want to delete this task?"
+                                      : "Are you sure you want to delete this task? This action cannot be undone."
+                                    }
+                                  </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                  <AlertDialogAction
+                                    onClick={() => handleDelete(task)}
+                                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                  >
+                                    Delete
+                                  </AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
                           </div>
                         </div>
-                        
-                        <div className="flex gap-2 ml-3">
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => onEditTask(task)}
-                            className="hover:bg-gradient-to-r hover:from-blue-600 hover:to-blue-700 hover:text-white hover:border-blue-700 transition-all hover:bg-none"
-                          >
-                            <Edit className="h-3 w-3" />
-                          </Button>
-                          
-                          <AlertDialog>
-                            <AlertDialogTrigger asChild>
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                onClick={() => setDeletingTask(task)}
-                                className="hover:bg-gradient-to-r hover:from-blue-600 hover:to-blue-700 hover:text-white hover:border-blue-700 transition-all hover:bg-none"
-                              >
-                                <Trash2 className="h-3 w-3" />
-                              </Button>
-                            </AlertDialogTrigger>
-                            <AlertDialogContent>
-                              <AlertDialogHeader>
-                                <AlertDialogTitle>Delete Task</AlertDialogTitle>
-                                <AlertDialogDescription>
-                                  {task.isShared 
-                                    ? "This will remove it for everyone. Are you sure you want to delete this task?"
-                                    : "Are you sure you want to delete this task? This action cannot be undone."
-                                  }
-                                </AlertDialogDescription>
-                              </AlertDialogHeader>
-                              <AlertDialogFooter>
-                                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                <AlertDialogAction
-                                  onClick={() => handleDelete(task)}
-                                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                                >
-                                  Delete
-                                </AlertDialogAction>
-                              </AlertDialogFooter>
-                            </AlertDialogContent>
-                          </AlertDialog>
-                        </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
               </div>
             </div>
           ))
@@ -158,3 +186,4 @@ const TaskList = ({ onEditTask }: TaskListProps) => {
 };
 
 export default TaskList;
+
