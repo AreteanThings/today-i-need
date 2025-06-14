@@ -113,7 +113,11 @@ const TaskList = ({ onEditTask }: TaskListProps) => {
                         <span>
                           Repeats:{" "}
                           <span className="italic">
-                            {ruleText || "Custom"}
+                            {ruleText || (
+                              <span className="text-destructive/80">
+                                (invalid custom rule)
+                              </span>
+                            )}
                           </span>
                         </span>
                       );

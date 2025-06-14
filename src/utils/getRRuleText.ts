@@ -8,9 +8,16 @@ import { rrulestr } from "rrule";
 export function getRRuleText(rruleString?: string): string | undefined {
   if (!rruleString) return undefined;
   try {
-    // Support both "RRULE:..." and just "FREQ=..."
-    const rule = rrulestr(rruleString.startsWith("RRULE:") ? rruleString : "RRULE:" + rruleString);
-    return rule.toText();
+    // Normalize: Always ensure "RRULE:" prefix for parsing
+    let rule: ReturnType<typeof rrulestr>;
+    try {
+      rule = rrulestr(rruleString.startsWith("RRULE:") ? rruleString : "RRULE:" + rruleString);
+      return rule.toText();
+    } catch {
+      // Fallback: try parsing as-is just in case
+      rule = rrulestr(rruleString);
+      return rule.toText();
+    }
   } catch {
     return undefined;
   }
