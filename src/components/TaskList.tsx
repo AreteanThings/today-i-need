@@ -114,25 +114,47 @@ const TaskList = ({ onEditTask }: TaskListProps) => {
                     let repeatDesc: React.ReactNode = (
                       <span>Repeats: {task.repeatValue}</span>
                     );
+                    
                     if (task.repeatValue === "custom") {
-                      const repairedRule = repairCustomRrule(task.customRrule);
-                      let ruleText = getRRuleText(repairedRule);
-                      // Capitalize the first character if text is present
-                      if (ruleText && ruleText.length > 0) {
-                        ruleText = ruleText.charAt(0).toUpperCase() + ruleText.slice(1);
-                      }
-                      repeatDesc = (
-                        <span>
-                          Repeats:{" "}
-                          <span className="italic">
-                            {ruleText || (
-                              <span className="text-destructive/80">
-                                (invalid custom rule)
+                      console.log("Processing custom task:", task.title, "customRrule:", task.customRrule);
+                      
+                      // Check if customRrule exists and is not empty
+                      if (task.customRrule && task.customRrule.trim()) {
+                        const repairedRule = repairCustomRrule(task.customRrule);
+                        let ruleText = getRRuleText(repairedRule);
+                        console.log("Repaired rule:", repairedRule, "Rule text:", ruleText);
+                        
+                        if (ruleText && ruleText.length > 0) {
+                          // Capitalize the first character if text is present
+                          ruleText = ruleText.charAt(0).toUpperCase() + ruleText.slice(1);
+                          repeatDesc = (
+                            <span>
+                              Repeats:{" "}
+                              <span className="italic">{ruleText}</span>
+                            </span>
+                          );
+                        } else {
+                          // Show the raw rule if we can't parse it
+                          repeatDesc = (
+                            <span>
+                              Repeats:{" "}
+                              <span className="font-mono text-xs text-muted-foreground">
+                                {task.customRrule}
                               </span>
-                            )}
+                            </span>
+                          );
+                        }
+                      } else {
+                        // No custom rule defined, show a more helpful message
+                        repeatDesc = (
+                          <span>
+                            Repeats:{" "}
+                            <span className="text-orange-600 italic">
+                              custom (needs configuration)
+                            </span>
                           </span>
-                        </span>
-                      );
+                        );
+                      }
                     }
 
                     return (
