@@ -7,6 +7,7 @@ import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from "@
 
 // Fix: Use import * as RRuleLib for universal access to static/class members
 import * as RRuleLib from "rrule";
+import type { Options } from "rrule"; // ← Import Options type directly
 
 // Map string codes to RRule weekday instances
 const WEEKDAY_CODES = [
@@ -55,7 +56,7 @@ export default function CustomRepeatModal({ open, onClose, onApply, initialRRule
 
   // build the RRULE string
   const buildRRuleString = () => {
-    let options: Partial<RRuleLib.RRule.Options> = {
+    let options: Partial<Options> = { // <-- Use imported Options directly
       freq,
       interval,
     };
@@ -203,6 +204,5 @@ export default function CustomRepeatModal({ open, onClose, onApply, initialRRule
     </Dialog>
   );
 }
-
 // ... done!
 
