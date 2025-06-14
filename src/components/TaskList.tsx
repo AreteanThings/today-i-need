@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Edit, Trash2 } from "lucide-react";
@@ -15,7 +16,8 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { getNextDueDate, getMostRecentOverdueDate } from "@/hooks/useTasks.utils";
-import { getRRuleText, repairCustomRrule } from "@/utils/getRRuleText";
+import { getRRuleText } from "@/utils/getRRuleText";
+import { repairCustomRrule } from "@/utils/repairCustomRrule";
 
 interface TaskListProps {
   onEditTask: (task: any) => void;
