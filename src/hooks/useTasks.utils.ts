@@ -1,4 +1,5 @@
 import { Task } from "@/types/task";
+import { rrulestr } from "rrule";
 
 // Utility function to make sure repeatValue is valid
 export const asRepeatValue = (val: any): Task["repeatValue"] => {
@@ -12,6 +13,7 @@ export const isTaskDueOnDate = (task: Task, date: Date): boolean => {
   const startDate = new Date(task.startDate);
   const endDate = task.endDate ? new Date(task.endDate) : null;
 
+  // If before start or after end, not due
   if (date < startDate) return false;
   if (endDate && date > endDate) return false;
 
@@ -27,6 +29,31 @@ export const isTaskDueOnDate = (task: Task, date: Date): boolean => {
     case "yearly":
       return date.getMonth() === startDate.getMonth() && date.getDate() === startDate.getDate();
     case "custom":
+      // Use rrule to properly evaluate custom repeat logic
+      if (task.customRrule) {
+        // Normalize: make sure RRULE: prefix exists if not already present
+        let ruleString = task.customRrule.startsWith("RRULE:") ? task.customRrule : "RRULE:" + task.customRrule;
+        try {
+          const rule = rrulestr(ruleString, { dtstart: new Date(task.startDate) });
+          // rrule occurs() is used to check if a given date is an occurrence
+          // rrule requires time to be included, so compare using date-only for both
+          // Set input date time to start of day
+          const candidateDate = new Date(date);
+          candidateDate.setHours(0, 0, 0, 0);
+          const after = new Date(candidateDate);
+          after.setHours(0, 0, 0, 0);
+          after.setDate(candidateDate.getDate() + 1);
+
+          // Check if there is an occurrence on this date
+          // rrule.between will return all occurrences for that day, if any
+          const occurrences = rule.between(candidateDate, after, true);
+          return occurrences.length > 0;
+        } catch {
+          // fallback: original (broken) logic
+          return daysDiff % 1 === 0;
+        }
+      }
+      // fallback in case no custom rule set: treat as daily (current behavior)
       return daysDiff % 1 === 0;
     default:
       return false;
