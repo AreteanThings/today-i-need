@@ -38,14 +38,17 @@ export const useTaskCompletion = ({
       let actualTaskId = taskId;
       let completedDate = today;
       
-      // Only split if this looks like an overdue task ID (contains a date pattern)
+      // Only split if this looks like an overdue task ID (ends with a date pattern)
       if (isOverdue && taskId.includes('-')) {
-        const parts = taskId.split('-');
-        // Check if the last part looks like a date (YYYY-MM-DD format)
-        const lastPart = parts[parts.length - 1];
-        if (lastPart.match(/^\d{4}-\d{2}-\d{2}$/)) {
-          actualTaskId = parts.slice(0, -1).join('-');
-          completedDate = lastPart;
+        // Check if the taskId ends with a date pattern (YYYY-MM-DD)
+        const datePattern = /(\d{4}-\d{2}-\d{2})$/;
+        const match = taskId.match(datePattern);
+        
+        if (match) {
+          // Extract the date from the end
+          completedDate = match[1];
+          // Remove the date suffix to get the actual task ID
+          actualTaskId = taskId.substring(0, taskId.length - match[1].length - 1); // -1 for the hyphen
         }
         // If it doesn't match date pattern, treat the whole string as task ID
       }
