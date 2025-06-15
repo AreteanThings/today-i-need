@@ -1,4 +1,5 @@
 
+
 import { useMemo } from "react";
 import { Task } from "@/types/task";
 import { isTaskDueOnDate } from "@/hooks/useTasks.utils";
@@ -79,13 +80,13 @@ const TaskHistoryCalendar = ({ task, currentDate }: TaskHistoryCalendarProps) =>
   const getStatusCircleClass = (status: string) => {
     switch (status) {
       case 'completed':
-        return 'border-2 border-green-500 bg-green-50';
+        return 'border-2 border-green-500';
       case 'missed':
-        return 'border-2 border-red-500 bg-red-50';
+        return 'border-2 border-red-500';
       case 'due-future':
-        return 'border-2 border-blue-500 bg-blue-50';
+        return 'border-2 border-blue-500';
       case 'due-today':
-        return 'border-2 border-orange-500 bg-orange-50';
+        return 'border-2 border-orange-500';
       default:
         return '';
     }
@@ -136,3 +137,4 @@ const TaskHistoryCalendar = ({ task, currentDate }: TaskHistoryCalendarProps) =>
 };
 
 export default TaskHistoryCalendar;
+
