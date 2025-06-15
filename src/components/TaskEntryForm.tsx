@@ -77,17 +77,19 @@ export default function TaskEntryForm({ onClose, editingTask }: TaskEntryFormPro
   const [shareEmails, setShareEmails] = useState<string[]>([]);
   const isFormLoading = isSubmitting || isLoading('addTask') || isLoading(`updateTask-${editingTask?.id}`);
 
-  // On edit: fetch shareEmails from DB
+  // On edit: fetch shareEmails from DB ONLY IF editingTask.id changes or user changes
   useEffect(() => {
     let cancelled = false;
     async function fetchShares() {
       if (editingTask?.id && user) {
         try {
           const emails = await getTaskShares(editingTask.id);
-          if (!cancelled) setShareEmails(emails);
+          if (!cancelled) {
+            setShareEmails(emails);
+            console.log('Fetched shared emails:', emails); // for debug
+          }
         } catch (err) {
-          // Could toast error here if desired
-          setShareEmails([]);
+          if (!cancelled) setShareEmails([]);
         }
       } else {
         setShareEmails([]);
@@ -95,8 +97,8 @@ export default function TaskEntryForm({ onClose, editingTask }: TaskEntryFormPro
     }
     fetchShares();
     return () => { cancelled = true; };
-    // eslint-disable-next-line
-  }, [editingTask, user]);
+    // Only refetch if editingTask id or user id changes
+  }, [editingTask?.id, user?.id]);
 
   useEffect(() => {
     if (editingTask) {
@@ -114,7 +116,7 @@ export default function TaskEntryForm({ onClose, editingTask }: TaskEntryFormPro
       if (editingTask.repeatValue === "custom") {
         setValue("repeatValue", "custom");
       }
-      // shareEmails is now fetched from DB above
+      // Do not overwrite or reset shareEmails here!
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [editingTask, reset, setValue]);
@@ -214,7 +216,6 @@ export default function TaskEntryForm({ onClose, editingTask }: TaskEntryFormPro
           <LoadingSpinner text="Saving task..." />
         </div>
       )}
-
       <FormActions 
         onCancel={handleCancel} 
         isSubmitting={isFormLoading}
