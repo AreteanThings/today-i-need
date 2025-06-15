@@ -14,10 +14,10 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Task } from "@/types/task";
-import { getNextDueDate, getMostRecentOverdueDate } from "@/hooks/useTasks.utils";
+import { getTaskDisplayInfo } from "@/utils/taskUtils";
+import { formatDisplayDate } from "@/utils/dateHelpers";
 import { getRRuleText } from "@/utils/getRRuleText";
 import { repairCustomRrule } from "@/utils/repairCustomRrule";
-import { formatRelativeDate } from "@/utils/dateUtils";
 
 interface TaskItemProps {
   task: Task;
@@ -26,28 +26,7 @@ interface TaskItemProps {
 }
 
 const TaskItem = ({ task, onEdit, onDelete }: TaskItemProps) => {
-  // Determine next due date and overdue info
-  const overdueDateStr = getMostRecentOverdueDate(task);
-  const nextDueDateStr = getNextDueDate(task);
-
-  let dueDisplay = null;
-  if (overdueDateStr) {
-    dueDisplay = (
-      <span className="text-destructive font-medium">
-        Overdue: {formatRelativeDate(overdueDateStr)}
-      </span>
-    );
-  } else if (nextDueDateStr) {
-    dueDisplay = (
-      <span>
-        Next Due: {formatRelativeDate(nextDueDateStr)}
-      </span>
-    );
-  } else {
-    dueDisplay = (
-      <span className="text-muted-foreground">No upcoming due dates</span>
-    );
-  }
+  const displayInfo = getTaskDisplayInfo(task);
 
   // Human readable repeat description (for "custom")
   let repeatDesc: React.ReactNode = (
@@ -57,14 +36,12 @@ const TaskItem = ({ task, onEdit, onDelete }: TaskItemProps) => {
   if (task.repeatValue === "custom") {
     console.log("Processing custom task:", task.title, "customRrule:", task.customRrule);
     
-    // Check if customRrule exists and is not empty
     if (task.customRrule && task.customRrule.trim()) {
       const repairedRule = repairCustomRrule(task.customRrule);
       let ruleText = getRRuleText(repairedRule);
       console.log("Repaired rule:", repairedRule, "Rule text:", ruleText);
       
       if (ruleText && ruleText.length > 0) {
-        // Capitalize the first character if text is present
         ruleText = ruleText.charAt(0).toUpperCase() + ruleText.slice(1);
         repeatDesc = (
           <span>
@@ -73,7 +50,6 @@ const TaskItem = ({ task, onEdit, onDelete }: TaskItemProps) => {
           </span>
         );
       } else {
-        // Show the raw rule if we can't parse it
         repeatDesc = (
           <span>
             Repeats:{" "}
@@ -84,7 +60,6 @@ const TaskItem = ({ task, onEdit, onDelete }: TaskItemProps) => {
         );
       }
     } else {
-      // No custom rule defined, show a more helpful message
       repeatDesc = (
         <span>
           Repeats:{" "}
@@ -95,6 +70,15 @@ const TaskItem = ({ task, onEdit, onDelete }: TaskItemProps) => {
       );
     }
   }
+
+  const dateToShow = displayInfo.overdueDateStr || displayInfo.nextDueDate;
+  const dueDisplay = dateToShow ? (
+    <span className={displayInfo.statusClass}>
+      {displayInfo.statusText}: {formatDisplayDate(dateToShow)}
+    </span>
+  ) : (
+    <span className={displayInfo.statusClass}>{displayInfo.statusText}</span>
+  );
 
   return (
     <div className="p-4 rounded-lg border bg-card">
@@ -109,7 +93,7 @@ const TaskItem = ({ task, onEdit, onDelete }: TaskItemProps) => {
           <div className="flex items-center gap-4 mt-2 text-xs text-muted-foreground">
             {repeatDesc}
             {task.endDate && (
-              <span>End: {formatRelativeDate(task.endDate)}</span>
+              <span>End: {formatDisplayDate(task.endDate)}</span>
             )}
             {task.isShared && (
               <span className="text-primary font-medium">Shared</span>

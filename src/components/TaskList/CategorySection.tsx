@@ -3,6 +3,7 @@ import React from "react";
 import { Task } from "@/types/task";
 import CategoryBadge from "../CategoryBadge";
 import TaskItem from "./TaskItem";
+import { sortTasksByPriority } from "@/utils/taskUtils";
 
 interface CategorySectionProps {
   category: string;
@@ -12,6 +13,8 @@ interface CategorySectionProps {
 }
 
 const CategorySection = ({ category, tasks, onEditTask, onDeleteTask }: CategorySectionProps) => {
+  const sortedTasks = sortTasksByPriority(tasks);
+
   return (
     <div className="mb-6">
       <div className="flex items-center gap-2 mb-3 pb-2 border-b border-border">
@@ -21,16 +24,14 @@ const CategorySection = ({ category, tasks, onEditTask, onDeleteTask }: Category
         </span>
       </div>
       <div className="space-y-3">
-        {tasks
-          .sort((a, b) => a.title.localeCompare(b.title))
-          .map((task) => (
-            <TaskItem
-              key={task.id}
-              task={task}
-              onEdit={onEditTask}
-              onDelete={onDeleteTask}
-            />
-          ))}
+        {sortedTasks.map((task) => (
+          <TaskItem
+            key={task.id}
+            task={task}
+            onEdit={onEditTask}
+            onDelete={onDeleteTask}
+          />
+        ))}
       </div>
     </div>
   );
