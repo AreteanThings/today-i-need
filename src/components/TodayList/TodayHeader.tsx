@@ -5,7 +5,7 @@ interface TodayHeaderProps {
 
 const TodayHeader = ({ totalActiveTasks }: TodayHeaderProps) => {
   return (
-    <div className="mb-4">
+    <div className="mb-4 text-center">
       <h1 className="text-2xl font-bold text-foreground font-poppins">
         Today is {new Date().toLocaleDateString('en-US', { 
           weekday: 'long', 
@@ -14,7 +14,7 @@ const TodayHeader = ({ totalActiveTasks }: TodayHeaderProps) => {
         })}
       </h1>
       <p className="text-muted-foreground">
-        {totalActiveTasks} active {totalActiveTasks === 1 ? 'task' : 'tasks'}
+        You have {totalActiveTasks} {totalActiveTasks === 1 ? 'task' : 'tasks'} for today
       </p>
     </div>
   );
