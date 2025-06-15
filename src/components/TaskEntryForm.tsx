@@ -70,7 +70,8 @@ export default function TaskEntryForm({ onClose, editingTask }: TaskEntryFormPro
   const [customRrule, setCustomRrule] = useState<string | undefined>(editingTask?.customRrule || "");
   const [customRruleText, setCustomRruleText] = useState<string | undefined>(editingTask?.customRruleText || "");
 
-  const [shareEmails, setShareEmails] = useState<string[]>(editingTask?.sharedWith ?? []);
+  // Do NOT use editingTask.sharedWith - just use an empty array (for future: support backend saving if needed)
+  const [shareEmails, setShareEmails] = useState<string[]>([]);
 
   const isFormLoading = isSubmitting || isLoading('addTask') || isLoading(`updateTask-${editingTask?.id}`);
 
@@ -90,7 +91,8 @@ export default function TaskEntryForm({ onClose, editingTask }: TaskEntryFormPro
       if (editingTask.repeatValue === "custom") {
         setValue("repeatValue", "custom");
       }
-      setShareEmails(editingTask.sharedWith ?? []);
+      // Don't setShareEmails from editingTask.sharedWith (does not exist)
+      setShareEmails([]); // or fetch from another place in the future
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [editingTask, reset, setValue]);
