@@ -42,7 +42,18 @@ export const useTaskFilters = (tasks: Task[]) => {
             const checkDateStr = checkDate.toISOString().split('T')[0];
             const completion = task.completedDates.find(cd => cd.date === checkDateStr);
             
-            if (!completion) {
+            if (completion) {
+              // Overdue task that was completed - add to done section
+              done.push({
+                ...task,
+                completedAt: completion.completedAt,
+                completedBy: completion.completedBy,
+                dueDate: checkDate.toISOString(),
+                id: `${task.id}-${checkDateStr}`,
+                wasOverdue: true
+              });
+            } else {
+              // Overdue task that's still incomplete
               overdue.push({
                 ...task,
                 dueDate: checkDate.toISOString(),

@@ -84,6 +84,13 @@ const TaskSection = ({
                               <User className="h-3 w-3" />
                               {task.completedDates[task.completedDates.length - 1].completedBy || 'You'}
                             </div>
+                            {/* Show if this was an overdue task that got completed */}
+                            {(task as any).wasOverdue && (
+                              <div className="flex items-center gap-1">
+                                <Calendar className="h-3 w-3" />
+                                <span className="text-green-600">Overdue task completed</span>
+                              </div>
+                            )}
                           </div>
                         )}
                         
