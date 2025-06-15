@@ -33,9 +33,24 @@ export const useTaskCompletion = ({
     try {
       setGlobalLoading(`markDone-${taskId}`, true);
       
-      // Get the task to determine the actual task ID (remove overdue suffix if present)
-      const actualTaskId = taskId.includes('-') ? taskId.split('-')[0] : taskId;
-      const completedDate = isOverdue ? taskId.split('-')[1] || today : today;
+      // For regular tasks, use the task ID as-is and today's date
+      // For overdue tasks, the taskId might be in format "taskId-date" from TodayList
+      let actualTaskId = taskId;
+      let completedDate = today;
+      
+      // Only split if this looks like an overdue task ID (contains a date pattern)
+      if (isOverdue && taskId.includes('-')) {
+        const parts = taskId.split('-');
+        // Check if the last part looks like a date (YYYY-MM-DD format)
+        const lastPart = parts[parts.length - 1];
+        if (lastPart.match(/^\d{4}-\d{2}-\d{2}$/)) {
+          actualTaskId = parts.slice(0, -1).join('-');
+          completedDate = lastPart;
+        }
+        // If it doesn't match date pattern, treat the whole string as task ID
+      }
+
+      console.log('Marking task done:', { taskId, actualTaskId, completedDate, isOverdue });
 
       // Optimistically update UI
       setTasks(prev => prev.map(task => {
