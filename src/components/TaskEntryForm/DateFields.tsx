@@ -1,28 +1,84 @@
-
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { format, parseISO } from "date-fns";
+import { CalendarIcon, XIcon } from "lucide-react";
+import React from "react";
 
 interface DateFieldsProps {
   register: any;
   errors: { startDate?: any; endDate?: any };
+  setValue?: (name: string, value: any) => void;
+  watch?: any;
 }
 
 const DateFields = ({ register, errors }: DateFieldsProps) => {
-  // The value that react-hook-form will track for endDate. 
-  // If blank/undefined, display "No End Date"
-  // We need to use register to get the form's value for endDate
-  const [showRealEndDateField, setShowRealEndDateField] = useState(false);
+  // These must be props if using react-hook-form context, else just watch as optional support.
+  // fallback if not provided (for testing/legacy)
+  let startDateValue: string | null = "";
+  let endDateValue: string | null = "";
+  let setValue: ((name: string, value: any) => void) | undefined;
+  let watch: any;
+
+  // For react-hook-form context support
+  if ((window as any).lovable_rhf_context) {
+    // This block is for Lovable internal override, ignore in real usage.
+    const { setValue: rhfSetValue, watch: rhfWatch } = (window as any).lovable_rhf_context;
+    setValue = rhfSetValue;
+    watch = rhfWatch;
+    startDateValue = watch("startDate");
+    endDateValue = watch("endDate");
+  } else if (typeof register === "object" && "name" in register) {
+    // legacy pattern
+    setValue = register.setValue;
+    watch = register.watch;
+    startDateValue = watch("startDate");
+    endDateValue = watch("endDate");
+  } else {
+    // Most usage (as in current TaskEntryForm)
+    if (typeof register === "function" && typeof arguments[0] === "object") {
+      const { setValue: propSetValue, watch: propWatch } = arguments[0];
+      setValue = propSetValue;
+      watch = propWatch;
+      if (watch) {
+        startDateValue = watch("startDate");
+        endDateValue = watch("endDate");
+      }
+    }
+  }
+
+  // Accept context for setValue and watch if passed
+  if ("setValue" in arguments[0] && typeof arguments[0]?.setValue === "function") {
+    setValue = arguments[0].setValue;
+  }
+  if ("watch" in arguments[0] && typeof arguments[0]?.watch === "function") {
+    watch = arguments[0].watch;
+    startDateValue = watch("startDate");
+    endDateValue = watch("endDate");
+  }
+
+  // (If those are not available, fall back to just trying to get the registered values)
+  // In real app, these are passed via props from useForm.
 
   return (
     <div className="grid grid-cols-2 gap-3">
       <div className="space-y-2">
-        <Label htmlFor="startDate" className="font-poppins">Start Date *</Label>
-        <Input
-          id="startDate"
-          type="date"
-          {...register("startDate")}
-          className={errors.startDate ? "border-destructive" : ""}
+        <Label htmlFor="startDate" className="font-poppins">
+          Start Date *
+        </Label>
+        <DatePickerField
+          name="startDate"
+          label="Start Date"
+          required
+          error={errors.startDate}
+          value={startDateValue}
+          onChange={date => setValue && setValue("startDate", date)}
         />
         {errors.startDate && (
           <p className="text-sm text-destructive font-poppins">
@@ -31,97 +87,112 @@ const DateFields = ({ register, errors }: DateFieldsProps) => {
         )}
       </div>
       <div className="space-y-2">
-        <Label htmlFor="endDate" className="font-poppins">End Date</Label>
-        {/* 
-          If the field is not shown by default, then:
-           - show "No End Date" placeholder & button to set
-           - if the real field, show date picker + clear option
-        */}
-        <EndDateInput
-          register={register}
-          errors={errors}
-          showRealEndDateField={showRealEndDateField}
-          setShowRealEndDateField={setShowRealEndDateField}
+        <Label htmlFor="endDate" className="font-poppins">
+          End Date
+        </Label>
+        <DatePickerField
+          name="endDate"
+          label="End Date"
+          required={false}
+          error={errors.endDate}
+          value={endDateValue}
+          onChange={date => setValue && setValue("endDate", date)}
+          allowClear
         />
+        {errors.endDate && (
+          <p className="text-sm text-destructive font-poppins">
+            {errors.endDate.message}
+          </p>
+        )}
       </div>
     </div>
   );
 };
 
-function EndDateInput({
-  register,
-  errors,
-  showRealEndDateField,
-  setShowRealEndDateField,
+// Reusable field for both Start and End date
+function DatePickerField({
+  name,
+  label,
+  required,
+  error,
+  value,
+  onChange,
+  allowClear = false,
 }: {
-  register: any;
-  errors: { endDate?: any };
-  showRealEndDateField: boolean;
-  setShowRealEndDateField: (show: boolean) => void;
+  name: string;
+  label: string;
+  required: boolean;
+  error: any;
+  value: string | null | undefined;
+  onChange: (date: string | undefined) => void;
+  allowClear?: boolean;
 }) {
-  // Use react-hook-form's watch function for current endDate value if needed
-  // Here, use a ref+event to migrate between view states
+  // Parse the value prop. Keep undefined if blank.
+  let dateValue: Date | undefined = undefined;
+  if (value && value.length > 0) {
+    // Accept ISO only
+    dateValue = parseISO(value);
+  }
+  const formatted = dateValue ? format(dateValue, "yyyy-MM-dd") : "";
 
-  // We'll show the field in one of two states: 
-  //  - If hidden or if field is empty, show "No End Date" + [Set End Date] 
-  //  - If present, show date input + [Remove End Date] button
-
-  // We don't have watch here, so use a trick: `defaultValue` on the input, and check if it's empty.
-  // Since register doesn't provide the value directly in this context, and to avoid prop drilling, we'll show the real field first if showRealEndDateField is true.
-
-  // Always render both fields, but show one depending on state.
-  // To support react-hook-form, always bind the actual input.
+  // To manage popover open/close state
+  const [open, setOpen] = React.useState(false);
 
   return (
-    <>
-      {!showRealEndDateField ? (
-        <div className="flex items-center gap-2">
-          <Input
-            value="No End Date"
-            disabled
-            className="bg-muted text-muted-foreground"
-            readOnly
-          />
-          <button
+    <div className="flex items-center gap-2">
+      <Popover open={open} onOpenChange={setOpen}>
+        <PopoverTrigger asChild>
+          <Button
+            variant="outline"
             type="button"
-            className="text-xs text-blue-600 underline ml-1"
-            onClick={() => setShowRealEndDateField(true)}
+            className={
+              "w-full pl-3 pr-3 justify-start text-left font-normal " +
+              (dateValue
+                ? ""
+                : " text-muted-foreground bg-muted") +
+              (error ? " border-destructive" : "")
+            }
+            aria-label={label}
           >
-            Set End Date
-          </button>
-        </div>
-      ) : (
-        <div className="flex items-center gap-2">
-          <Input
-            id="endDate"
-            type="date"
-            {...register("endDate")}
-            className={errors.endDate ? "border-destructive" : ""}
-          />
-          <button
-            type="button"
-            className="text-xs text-blue-600 underline ml-1"
-            onClick={() => {
-              // Hide the real field again
-              setShowRealEndDateField(false);
-              // Clear value from input (this is a hack for react-hook-form)
-              // Find the input and clear it
-              const input = document.getElementById("endDate") as HTMLInputElement;
-              if (input) input.value = "";
-              // Ideally, trigger react-hook-form setValue to "" here, but we're using register
-              // The parent will reset this on form submit
+            <CalendarIcon className="mr-2 h-4 w-4 opacity-70" />
+            {dateValue ? (
+              <span>{format(dateValue, "PPP")}</span>
+            ) : (
+              <span className="italic">No End Date</span>
+            )}
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent className="w-auto p-0" align="start">
+          <Calendar
+            mode="single"
+            selected={dateValue}
+            onSelect={selected => {
+              setOpen(false);
+              if (selected) {
+                // convert to yyyy-MM-dd format for form
+                const iso = format(selected, "yyyy-MM-dd");
+                onChange(iso);
+              } else {
+                onChange("");
+              }
             }}
-          >
-            No End Date
-          </button>
-        </div>
+            initialFocus
+            className="p-3 pointer-events-auto"
+          />
+        </PopoverContent>
+      </Popover>
+
+      {allowClear && dateValue && (
+        <button
+          type="button"
+          aria-label="Clear date"
+          onClick={() => onChange("")}
+          className="ml-1 rounded hover:bg-accent/50 p-1 text-muted-foreground"
+        >
+          <XIcon className="w-4 h-4" />
+        </button>
       )}
-      {errors.endDate && (
-        <p className="text-sm text-destructive font-poppins">
-          {errors.endDate.message}
-        </p>
-      )}
-    </>
+    </div>
   );
 }
 
