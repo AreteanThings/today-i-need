@@ -3,6 +3,8 @@ import { useState } from "react";
 import { useTasks } from "@/hooks/useTasks";
 import { useToast } from "@/hooks/use-toast";
 import { Task } from "@/types/task";
+import { useTodayTasks } from "@/hooks/useTodayTasks";
+import { TaskActionsProvider } from "@/contexts/TaskActionsContext";
 import TaskSection from "./TodayList/TaskSection";
 import TodayHeader from "./TodayList/TodayHeader";
 import EmptyState from "./TodayList/EmptyState";
@@ -12,11 +14,11 @@ interface TodayListProps {
 }
 
 const TodayList = ({ onEditTask }: TodayListProps) => {
-  const { getTodayTasks, markTaskDone, undoTaskDone } = useTasks();
+  const { tasks, markTaskDone, undoTaskDone } = useTasks();
   const { toast } = useToast();
   const [hiddenOverdueTasks, setHiddenOverdueTasks] = useState<Set<string>>(new Set());
 
-  const { active, done, overdue } = getTodayTasks();
+  const { active, done, overdue } = useTodayTasks(tasks, hiddenOverdueTasks);
 
   const handleMarkDone = (taskId: string, isOverdue = false) => {
     markTaskDone(taskId, isOverdue);
@@ -51,38 +53,31 @@ const TodayList = ({ onEditTask }: TodayListProps) => {
   const totalActiveTasks = active.length + overdue.filter(task => !hiddenOverdueTasks.has(task.id)).length;
 
   return (
-    <div className="p-4 pb-20">
-      <TodayHeader totalActiveTasks={totalActiveTasks} />
+    <TaskActionsProvider onMarkDone={handleMarkDone} onUndo={handleUndo}>
+      <div className="p-4 pb-20">
+        <TodayHeader totalActiveTasks={totalActiveTasks} />
 
-      <TaskSection 
-        title="Active" 
-        tasks={active} 
-        type="active" 
-        hiddenOverdueTasks={hiddenOverdueTasks}
-        onMarkDone={handleMarkDone}
-        onUndo={handleUndo}
-      />
-      <TaskSection 
-        title="Done" 
-        tasks={done} 
-        type="done" 
-        hiddenOverdueTasks={hiddenOverdueTasks}
-        onMarkDone={handleMarkDone}
-        onUndo={handleUndo}
-      />
-      <TaskSection 
-        title="Overdue" 
-        tasks={overdue} 
-        type="overdue" 
-        hiddenOverdueTasks={hiddenOverdueTasks}
-        onMarkDone={handleMarkDone}
-        onUndo={handleUndo}
-      />
-      
-      {active.length === 0 && done.length === 0 && overdue.filter(task => !hiddenOverdueTasks.has(task.id)).length === 0 && (
-        <EmptyState />
-      )}
-    </div>
+        <TaskSection 
+          title="Active" 
+          tasks={active} 
+          type="active" 
+        />
+        <TaskSection 
+          title="Done" 
+          tasks={done} 
+          type="done" 
+        />
+        <TaskSection 
+          title="Overdue" 
+          tasks={overdue.filter(task => !hiddenOverdueTasks.has(task.id))} 
+          type="overdue" 
+        />
+        
+        {active.length === 0 && done.length === 0 && overdue.filter(task => !hiddenOverdueTasks.has(task.id)).length === 0 && (
+          <EmptyState />
+        )}
+      </div>
+    </TaskActionsProvider>
   );
 };
 
