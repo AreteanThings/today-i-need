@@ -1,3 +1,4 @@
+
 import { useMemo } from "react";
 import { Task } from "@/types/task";
 import { isTaskDueOnDate } from "@/hooks/useTasks.utils";
@@ -75,18 +76,18 @@ const TaskHistoryCalendar = ({ task, currentDate }: TaskHistoryCalendarProps) =>
     }
   };
 
-  const getStatusIcon = (status: string) => {
+  const getStatusCircleClass = (status: string) => {
     switch (status) {
       case 'completed':
-        return <div className="w-2 h-2 rounded-full bg-green-500 mx-auto"></div>;
+        return 'border-2 border-green-500 bg-green-50';
       case 'missed':
-        return <div className="w-2 h-2 rounded-full bg-red-500 mx-auto"></div>;
+        return 'border-2 border-red-500 bg-red-50';
       case 'due-future':
-        return <div className="w-2 h-2 rounded-full bg-blue-500 mx-auto"></div>;
+        return 'border-2 border-blue-500 bg-blue-50';
       case 'due-today':
-        return <div className="w-2 h-2 rounded-full bg-orange-500 mx-auto"></div>;
+        return 'border-2 border-orange-500 bg-orange-50';
       default:
-        return null;
+        return '';
     }
   };
 
@@ -107,18 +108,25 @@ const TaskHistoryCalendar = ({ task, currentDate }: TaskHistoryCalendarProps) =>
       <div className="grid grid-cols-7 gap-1">
         {calendarDays.map((date, index) => {
           const { status, isCurrentMonth, className } = getDateStatus(date);
+          const circleClass = getStatusCircleClass(status);
           
           return (
             <div
               key={index}
               className={`
-                relative text-center p-2 text-sm min-h-[32px] flex flex-col justify-center
-                ${className}
+                relative text-center p-1 text-sm min-h-[32px] flex items-center justify-center
                 ${!isCurrentMonth ? 'opacity-30' : ''}
               `}
             >
-              <div>{date.getDate()}</div>
-              {getStatusIcon(status)}
+              <div
+                className={`
+                  w-6 h-6 rounded-full flex items-center justify-center text-xs
+                  ${className}
+                  ${circleClass}
+                `}
+              >
+                {date.getDate()}
+              </div>
             </div>
           );
         })}
