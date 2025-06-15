@@ -14,6 +14,7 @@ import DateFields from "./TaskEntryForm/DateFields";
 import RepeatField from "./TaskEntryForm/RepeatField";
 import ShareField from "./TaskEntryForm/ShareField";
 import FormActions from "./TaskEntryForm/FormActions";
+import TaskShareContactsField from "./TaskEntryForm/TaskShareContactsField";
 
 const taskSchema = z.object({
   category: z.string().min(1, "Category is required").max(50, "Category must be less than 50 characters"),
@@ -69,9 +70,10 @@ export default function TaskEntryForm({ onClose, editingTask }: TaskEntryFormPro
   const [customRrule, setCustomRrule] = useState<string | undefined>(editingTask?.customRrule || "");
   const [customRruleText, setCustomRruleText] = useState<string | undefined>(editingTask?.customRruleText || "");
 
+  const [shareEmails, setShareEmails] = useState<string[]>(editingTask?.sharedWith ?? []);
+
   const isFormLoading = isSubmitting || isLoading('addTask') || isLoading(`updateTask-${editingTask?.id}`);
 
-  // Reset form values in edit mode, including repeat/custom fields
   useEffect(() => {
     if (editingTask) {
       reset({
@@ -85,10 +87,10 @@ export default function TaskEntryForm({ onClose, editingTask }: TaskEntryFormPro
       });
       setCustomRrule(editingTask.customRrule || "");
       setCustomRruleText(editingTask.customRruleText || "");
-      // On editing an existing custom repeat, explicitly set repeatValue to "custom"
       if (editingTask.repeatValue === "custom") {
         setValue("repeatValue", "custom");
       }
+      setShareEmails(editingTask.sharedWith ?? []);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [editingTask, reset, setValue]);
@@ -166,6 +168,12 @@ export default function TaskEntryForm({ onClose, editingTask }: TaskEntryFormPro
         checked={watch("isShared")}
         onCheckedChange={checked => setValue("isShared", !!checked)}
       />
+      {watch("isShared") && (
+        <TaskShareContactsField
+          selectedEmails={shareEmails}
+          setSelectedEmails={setShareEmails}
+        />
+      )}
       {isFormLoading && (
         <div className="flex justify-center py-4">
           <LoadingSpinner text="Saving task..." />
