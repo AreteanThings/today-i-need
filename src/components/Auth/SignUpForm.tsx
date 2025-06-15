@@ -22,47 +22,57 @@ const SignUpForm = () => {
   };
 
   return (
-    <form onSubmit={handleSignUp} autoComplete="off">
+    <form onSubmit={handleSignUp} autoComplete="new-password">
+      {/* Hidden dummy inputs to confuse autofill */}
+      <input type="text" style={{ display: 'none' }} />
+      <input type="password" style={{ display: 'none' }} />
+      
       <CardContent className="space-y-4">
         <div className="space-y-2">
           <Label htmlFor="signup-fullname">Full Name</Label>
           <Input
             id="signup-fullname"
-            name="signup-fullname"
+            name="signup-fullname-unique"
             type="text"
             placeholder="Enter your full name"
             value={fullName}
             onChange={(e) => setFullName(e.target.value)}
-            autoComplete="off"
+            autoComplete="new-password"
             data-form-type="other"
+            data-lpignore="true"
+            data-1p-ignore="true"
           />
         </div>
         <div className="space-y-2">
           <Label htmlFor="signup-email">Email</Label>
           <Input
             id="signup-email"
-            name="signup-email"
+            name="signup-email-unique"
             type="email"
             placeholder="Enter your email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
-            autoComplete="off"
+            autoComplete="new-password"
             data-form-type="other"
+            data-lpignore="true"
+            data-1p-ignore="true"
           />
         </div>
         <div className="space-y-2">
           <Label htmlFor="signup-password">Password</Label>
           <Input
             id="signup-password"
-            name="signup-password"
+            name="signup-password-unique"
             type="password"
             placeholder="Create a password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
-            autoComplete="off"
+            autoComplete="new-password"
             data-form-type="other"
+            data-lpignore="true"
+            data-1p-ignore="true"
           />
         </div>
       </CardContent>

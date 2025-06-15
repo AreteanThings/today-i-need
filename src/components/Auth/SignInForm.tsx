@@ -25,34 +25,42 @@ const SignInForm = ({ onForgotPassword }: SignInFormProps) => {
   };
 
   return (
-    <form onSubmit={handleSignIn} autoComplete="off">
+    <form onSubmit={handleSignIn} autoComplete="new-password">
+      {/* Hidden dummy inputs to confuse autofill */}
+      <input type="text" style={{ display: 'none' }} />
+      <input type="password" style={{ display: 'none' }} />
+      
       <CardContent className="space-y-4">
         <div className="space-y-2">
           <Label htmlFor="signin-email">Email</Label>
           <Input
             id="signin-email"
-            name="signin-email"
+            name="signin-email-unique"
             type="email"
             placeholder="Enter your email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
-            autoComplete="off"
+            autoComplete="new-password"
             data-form-type="other"
+            data-lpignore="true"
+            data-1p-ignore="true"
           />
         </div>
         <div className="space-y-2">
           <Label htmlFor="signin-password">Password</Label>
           <Input
             id="signin-password"
-            name="signin-password"
+            name="signin-password-unique"
             type="password"
             placeholder="Enter your password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
-            autoComplete="off"
+            autoComplete="new-password"
             data-form-type="other"
+            data-lpignore="true"
+            data-1p-ignore="true"
           />
         </div>
         <div className="flex justify-end">

@@ -53,17 +53,23 @@ const ForgotPasswordModal = ({ open, onClose }: ForgotPasswordModalProps) => {
           ×
         </button>
         <h2 className="text-xl font-medium mb-2">Reset your password</h2>
-        <form onSubmit={handleSend} className="space-y-3">
+        <form onSubmit={handleSend} className="space-y-3" autoComplete="new-password">
+          {/* Hidden dummy input */}
+          <input type="password" style={{ display: 'none' }} />
+          
           <Label htmlFor="fp-email">Email address</Label>
           <Input
             id="fp-email"
+            name="fp-email-unique"
             type="email"
             placeholder="Enter your email"
             value={email}
             onChange={e => setEmail(e.target.value)}
             required
             disabled={sending}
-            autoComplete="email"
+            autoComplete="new-password"
+            data-lpignore="true"
+            data-1p-ignore="true"
           />
           <Button
             type="submit"
