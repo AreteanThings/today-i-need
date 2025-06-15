@@ -1,4 +1,3 @@
-
 import { useMemo } from "react";
 import { Task } from "@/types/task";
 import { isTaskDueOnDate } from "@/hooks/useTasks.utils";
@@ -19,12 +18,12 @@ const TaskHistoryCalendar = ({ task, currentDate }: TaskHistoryCalendarProps) =>
     startDate.setDate(startDate.getDate() - monthStart.getDay());
     
     const days = [];
-    const currentDate = new Date(startDate);
+    const loopDate = new Date(startDate);
     
     // Generate 42 days (6 weeks) to fill the calendar grid
     for (let i = 0; i < 42; i++) {
-      days.push(new Date(currentDate));
-      currentDate.setDate(currentDate.getDate() + 1);
+      days.push(new Date(loopDate));
+      loopDate.setDate(loopDate.getDate() + 1);
     }
     
     return { calendarDays: days, monthStart };
