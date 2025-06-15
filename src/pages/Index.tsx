@@ -26,6 +26,10 @@ const Index = () => {
     setEditingTask(null);
   };
 
+  const handleLogout = () => {
+    signOut();
+  };
+
   // Show loading state
   if (loading) {
     return (
@@ -59,31 +63,21 @@ const Index = () => {
         {/* Header */}
         <div className="header-gradient text-white p-4 flex justify-between items-center h-16">
           <h1 className="text-2xl font-bold">Today I Need</h1>
-          <div className="flex items-center gap-2">
-            {activeTab !== "about" && (
-              <Button
-                size="sm"
-                variant="secondary"
-                onClick={() => setShowTaskEntry(true)}
-              >
-                <Plus className="h-4 w-4 mr-1" />
-                Add Task
-              </Button>
-            )}
+          {activeTab !== "about" && activeTab !== "logout" && (
             <Button
               size="sm"
-              variant="ghost"
-              onClick={signOut}
-              className="hover:bg-white/20 hover:text-white"
+              variant="secondary"
+              onClick={() => setShowTaskEntry(true)}
             >
-              <LogOut className="h-4 w-4" />
+              <Plus className="h-4 w-4 mr-1" />
+              Add Task
             </Button>
-          </div>
+          )}
         </div>
 
         {/* Navigation */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid grid-cols-3 w-full">
+          <TabsList className="grid grid-cols-4 w-full">
             <TabsTrigger value="today" className="flex items-center gap-1">
               <Calendar className="h-4 w-4" />
               Today
@@ -95,6 +89,10 @@ const Index = () => {
             <TabsTrigger value="about" className="flex items-center gap-1">
               <Info className="h-4 w-4" />
               About
+            </TabsTrigger>
+            <TabsTrigger value="logout" className="flex items-center gap-1" onClick={handleLogout}>
+              <LogOut className="h-4 w-4" />
+              Logout
             </TabsTrigger>
           </TabsList>
 
@@ -108,6 +106,11 @@ const Index = () => {
 
           <TabsContent value="about" className="mt-0">
             <About />
+          </TabsContent>
+
+          <TabsContent value="logout" className="mt-0">
+            {/* This content won't be shown as logout triggers immediately */}
+            <div></div>
           </TabsContent>
         </Tabs>
       </div>
