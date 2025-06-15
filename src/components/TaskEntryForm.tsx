@@ -1,4 +1,3 @@
-
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -56,23 +55,23 @@ export default function TaskEntryForm({ onClose, editingTask }: TaskEntryFormPro
   } = useForm<TaskFormData>({
     resolver: zodResolver(taskSchema),
     defaultValues: {
-      category: "",
-      title: "",
-      subtitle: "",
-      startDate: new Date().toISOString().split("T")[0],
-      endDate: "",
-      repeatValue: "daily",
-      isShared: false,
+      category: editingTask?.category || "",
+      title: editingTask?.title || "",
+      subtitle: editingTask?.subtitle || "",
+      startDate: editingTask?.startDate || new Date().toISOString().split("T")[0],
+      endDate: editingTask?.endDate || "",
+      repeatValue: editingTask?.repeatValue || "daily",
+      isShared: editingTask?.isShared || false,
     },
   });
 
   const [customRepeatOpen, setCustomRepeatOpen] = useState(false);
-  const [customRrule, setCustomRrule] = useState<string | undefined>(editingTask?.customRrule);
-  const [customRruleText, setCustomRruleText] = useState<string | undefined>(editingTask?.customRruleText);
+  const [customRrule, setCustomRrule] = useState<string | undefined>(editingTask?.customRrule || "");
+  const [customRruleText, setCustomRruleText] = useState<string | undefined>(editingTask?.customRruleText || "");
 
   const isFormLoading = isSubmitting || isLoading('addTask') || isLoading(`updateTask-${editingTask?.id}`);
 
-  // Edit mode: reset form with existing task
+  // Reset form values in edit mode, including repeat/custom fields
   useEffect(() => {
     if (editingTask) {
       reset({
@@ -84,10 +83,15 @@ export default function TaskEntryForm({ onClose, editingTask }: TaskEntryFormPro
         repeatValue: editingTask.repeatValue,
         isShared: editingTask.isShared,
       });
-      setCustomRrule(editingTask.customRrule || '');
-      setCustomRruleText(editingTask.customRruleText || '');
+      setCustomRrule(editingTask.customRrule || "");
+      setCustomRruleText(editingTask.customRruleText || "");
+      // On editing an existing custom repeat, explicitly set repeatValue to "custom"
+      if (editingTask.repeatValue === "custom") {
+        setValue("repeatValue", "custom");
+      }
     }
-  }, [editingTask, reset]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [editingTask, reset, setValue]);
 
   const onSubmit = async (data: TaskFormData) => {
     const existingTask = tasks.find(
@@ -149,7 +153,7 @@ export default function TaskEntryForm({ onClose, editingTask }: TaskEntryFormPro
       <NotesField register={register} />
       <DateFields register={register} errors={errors} />
       <RepeatField
-        repeatValue={watch("repeatValue")}
+        repeatValue={watch("repeatValue")} // This will now be correct for edit OR create
         setRepeatValue={(v) => setValue("repeatValue", v as any)}
         customRepeatOpen={customRepeatOpen}
         setCustomRepeatOpen={setCustomRepeatOpen}
@@ -162,7 +166,6 @@ export default function TaskEntryForm({ onClose, editingTask }: TaskEntryFormPro
         checked={watch("isShared")}
         onCheckedChange={checked => setValue("isShared", !!checked)}
       />
-
       {isFormLoading && (
         <div className="flex justify-center py-4">
           <LoadingSpinner text="Saving task..." />
