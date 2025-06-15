@@ -29,6 +29,9 @@ export const useTaskStatus = () => {
     if (overdueDateStr) {
       statusText = 'Overdue';
       statusClass = 'text-destructive font-medium';
+    } else if (isDueToday && !isCompletedToday) {
+      statusText = 'Next Due';
+      statusClass = 'text-foreground';
     } else if (nextDueDateStr) {
       statusText = 'Next Due';
       statusClass = 'text-foreground';
@@ -37,11 +40,14 @@ export const useTaskStatus = () => {
       statusClass = 'text-muted-foreground';
     }
 
+    // Use today's date if the task is due today and not completed, otherwise use the next due date
+    const displayDate = (isDueToday && !isCompletedToday) ? todayStr : nextDueDateStr;
+
     return {
       isOverdue: !!overdueDateStr,
       isDueToday,
       isCompleted: isCompletedToday,
-      nextDueDate: nextDueDateStr,
+      nextDueDate: displayDate,
       overdueDateStr,
       statusText,
       statusClass,
