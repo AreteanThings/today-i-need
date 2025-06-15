@@ -1,7 +1,7 @@
 
 import React from "react";
 import { Button } from "@/components/ui/button";
-import { Edit, Trash2 } from "lucide-react";
+import { Edit, Trash2, History } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -21,9 +21,10 @@ interface TaskItemProps {
   task: Task;
   onEdit: (task: Task) => void;
   onDelete: (task: Task) => void;
+  onViewHistory: (task: Task) => void;
 }
 
-const TaskItem = ({ task, onEdit, onDelete }: TaskItemProps) => {
+const TaskItem = ({ task, onEdit, onDelete, onViewHistory }: TaskItemProps) => {
   const displayInfo = getTaskDisplayInfo(task);
 
   // Human readable repeat description
@@ -93,6 +94,16 @@ const TaskItem = ({ task, onEdit, onDelete }: TaskItemProps) => {
         </div>
         
         <div className="flex gap-2 ml-3">
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => onViewHistory(task)}
+            className="hover:bg-gradient-to-r hover:from-blue-600 hover:to-blue-700 hover:text-white hover:border-blue-700 transition-all hover:bg-none"
+            title="See History"
+          >
+            <History className="h-3 w-3" />
+          </Button>
+          
           <Button
             size="sm"
             variant="outline"
