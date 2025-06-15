@@ -28,7 +28,7 @@ interface TaskItemProps {
 const TaskItem = ({ task, onEdit, onDelete }: TaskItemProps) => {
   const displayInfo = getTaskDisplayInfo(task);
 
-  // Human readable repeat description (for "custom")
+  // Human readable repeat description
   let repeatDesc: React.ReactNode = (
     <span>Repeats: {task.repeatValue}</span>
   );
@@ -44,10 +44,7 @@ const TaskItem = ({ task, onEdit, onDelete }: TaskItemProps) => {
       if (ruleText && ruleText.length > 0) {
         ruleText = ruleText.charAt(0).toUpperCase() + ruleText.slice(1);
         repeatDesc = (
-          <span>
-            Repeats:{" "}
-            <span className="italic">{ruleText}</span>
-          </span>
+          <span>Repeats: {ruleText}</span>
         );
       } else {
         repeatDesc = (
