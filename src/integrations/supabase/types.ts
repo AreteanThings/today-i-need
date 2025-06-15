@@ -9,6 +9,27 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      shared_contacts: {
+        Row: {
+          contact_email: string
+          id: string
+          last_shared_at: string | null
+          owner_id: string
+        }
+        Insert: {
+          contact_email: string
+          id?: string
+          last_shared_at?: string | null
+          owner_id: string
+        }
+        Update: {
+          contact_email?: string
+          id?: string
+          last_shared_at?: string | null
+          owner_id?: string
+        }
+        Relationships: []
+      }
       task_completions: {
         Row: {
           completed_at: string
