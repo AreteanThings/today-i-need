@@ -62,6 +62,30 @@ export type Database = {
           },
         ]
       }
+      task_shares: {
+        Row: {
+          contact_email: string
+          created_at: string
+          id: string
+          owner_id: string
+          task_id: string
+        }
+        Insert: {
+          contact_email: string
+          created_at?: string
+          id?: string
+          owner_id: string
+          task_id: string
+        }
+        Update: {
+          contact_email?: string
+          created_at?: string
+          id?: string
+          owner_id?: string
+          task_id?: string
+        }
+        Relationships: []
+      }
       tasks: {
         Row: {
           category: string

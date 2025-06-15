@@ -15,6 +15,8 @@ import RepeatField from "./TaskEntryForm/RepeatField";
 import ShareField from "./TaskEntryForm/ShareField";
 import FormActions from "./TaskEntryForm/FormActions";
 import TaskShareContactsField from "./TaskEntryForm/TaskShareContactsField";
+import { useAuth } from "@/hooks/useAuth";
+import { getTaskShares, setTaskShares } from "@/lib/taskShares";
 
 const taskSchema = z.object({
   category: z.string().min(1, "Category is required").max(50, "Category must be less than 50 characters"),
@@ -45,6 +47,7 @@ export default function TaskEntryForm({ onClose, editingTask }: TaskEntryFormPro
   const { toast } = useToast();
   const { addTask, updateTask, tasks, categories } = useTasks();
   const { isLoading } = useLoading();
+  const { user } = useAuth();
 
   const {
     register,
@@ -70,10 +73,30 @@ export default function TaskEntryForm({ onClose, editingTask }: TaskEntryFormPro
   const [customRrule, setCustomRrule] = useState<string | undefined>(editingTask?.customRrule || "");
   const [customRruleText, setCustomRruleText] = useState<string | undefined>(editingTask?.customRruleText || "");
 
-  // Do NOT use editingTask.sharedWith - just use an empty array (for future: support backend saving if needed)
+  // Use state for shared emails
   const [shareEmails, setShareEmails] = useState<string[]>([]);
-
   const isFormLoading = isSubmitting || isLoading('addTask') || isLoading(`updateTask-${editingTask?.id}`);
+
+  // On edit: fetch shareEmails from DB
+  useEffect(() => {
+    let cancelled = false;
+    async function fetchShares() {
+      if (editingTask?.id && user) {
+        try {
+          const emails = await getTaskShares(editingTask.id);
+          if (!cancelled) setShareEmails(emails);
+        } catch (err) {
+          // Could toast error here if desired
+          setShareEmails([]);
+        }
+      } else {
+        setShareEmails([]);
+      }
+    }
+    fetchShares();
+    return () => { cancelled = true; };
+    // eslint-disable-next-line
+  }, [editingTask, user]);
 
   useEffect(() => {
     if (editingTask) {
@@ -91,8 +114,7 @@ export default function TaskEntryForm({ onClose, editingTask }: TaskEntryFormPro
       if (editingTask.repeatValue === "custom") {
         setValue("repeatValue", "custom");
       }
-      // Don't setShareEmails from editingTask.sharedWith (does not exist)
-      setShareEmails([]); // or fetch from another place in the future
+      // shareEmails is now fetched from DB above
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [editingTask, reset, setValue]);
@@ -115,6 +137,7 @@ export default function TaskEntryForm({ onClose, editingTask }: TaskEntryFormPro
     }
 
     try {
+      let taskId: string | undefined;
       if (editingTask) {
         await updateTask(editingTask.id, {
           ...data,
@@ -122,6 +145,7 @@ export default function TaskEntryForm({ onClose, editingTask }: TaskEntryFormPro
           customRruleText: data.repeatValue === "custom" ? customRruleText : undefined,
           endDate: data.endDate || undefined
         });
+        taskId = editingTask.id;
       } else {
         const taskData = {
           category: data.category,
@@ -134,7 +158,16 @@ export default function TaskEntryForm({ onClose, editingTask }: TaskEntryFormPro
           customRrule: data.repeatValue === "custom" ? customRrule : undefined,
           customRruleText: data.repeatValue === "custom" ? customRruleText : undefined,
         };
+        // addTask returns nothing, so fetch the most recent task after adding
         await addTask(taskData);
+        // refetch tasks to get the latest added task (assumes it's last in array)
+        await new Promise(r => setTimeout(r, 100)); // tiny delay for consistency
+        const latestTasks = tasks.slice().sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+        taskId = latestTasks[0]?.id;
+      }
+      // Save shared emails if shared
+      if (data.isShared && taskId && user) {
+        await setTaskShares(taskId, user.id, shareEmails);
       }
       onClose();
     } catch (error) {
