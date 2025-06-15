@@ -14,6 +14,8 @@ interface RepeatFieldProps {
   setCustomRepeatOpen: (open: boolean) => void;
   customRrule?: string;
   setCustomRrule: (r: string) => void;
+  customRruleText?: string;
+  setCustomRruleText: (text: string) => void;
 }
 
 const RepeatField = ({
@@ -23,6 +25,8 @@ const RepeatField = ({
   setCustomRepeatOpen,
   customRrule,
   setCustomRrule,
+  customRruleText,
+  setCustomRruleText,
 }: RepeatFieldProps) => {
   // Only auto-open custom modal if user selects "custom" from dropdown, not on initial mount/edit
   const prevRepeatValue = React.useRef<string>(repeatValue);
@@ -40,8 +44,9 @@ const RepeatField = ({
     prevRepeatValue.current = repeatValue;
   }, [repeatValue, setCustomRepeatOpen]);
 
-  const handleApplyCustomRepeat = (rruleString: string) => {
+  const handleApplyCustomRepeat = (rruleString: string, previewText: string) => {
     setCustomRrule(rruleString);
+    setCustomRruleText(previewText);
     setCustomRepeatOpen(false);
   };
 
@@ -63,19 +68,13 @@ const RepeatField = ({
           <SelectItem value="custom" className="font-poppins">Custom</SelectItem>
         </SelectContent>
       </Select>
-      {repeatValue === "custom" && customRrule && (
+      {repeatValue === "custom" && (customRruleText || customRrule) && (
         <div className="mt-2 bg-accent/20 p-2 rounded font-poppins text-xs">
-          {/* Ensure we use repaired, and capitalize */}
-          {(() => {
-            const repaired = repairCustomRrule(customRrule);
-            let text = getRRuleText(repaired);
-            if (text && text.length > 0) {
-              text = text.charAt(0).toUpperCase() + text.slice(1);
-            }
-            return text
-              ? <>Custom: <span className="font-semibold">{text}</span></>
-              : <>Custom: <span className="font-mono">{customRrule}</span></>;
-          })()}
+          {customRruleText ? (
+            <>Custom: <span className="font-semibold">{customRruleText}</span></>
+          ) : (
+            <>Custom: <span className="font-mono">{customRrule}</span></>
+          )}
         </div>
       )}
       <CustomRepeatModal

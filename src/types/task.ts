@@ -11,5 +11,6 @@ export interface Task {
   isActive: boolean;
   createdAt: string;
   completedDates: { date: string; completedAt: string; completedBy: string }[];
-  customRrule?: string; // <-- Added optional customRrule
+  customRrule?: string;
+  customRruleText?: string; // Human-readable text for custom rules
 }

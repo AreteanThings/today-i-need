@@ -21,7 +21,7 @@ const WEEKDAY_CODES = [
 type CustomRepeatModalProps = {
   open: boolean;
   onClose: () => void;
-  onApply: (rruleString: string) => void;
+  onApply: (rruleString: string, previewText: string) => void;
   initialRRule?: string;
 };
 
@@ -32,6 +32,7 @@ export default function CustomRepeatModal({ open, onClose, onApply, initialRRule
   const [byweekday, setByweekday] = useState<string[]>([]);
   const [bysetpos, setBysetpos] = useState<string>('');
   const [rruleString, setRRuleString] = useState<string>(initialRRule || '');
+  const [previewText, setPreviewText] = useState<string>('');
 
   // Lazy load RRule library
   useEffect(() => {
@@ -74,7 +75,7 @@ export default function CustomRepeatModal({ open, onClose, onApply, initialRRule
     }
   }, [open, initialRRule, RRuleLib]);
 
-  // Update RRULE string when state changes
+  // Update RRULE string and preview when state changes
   useEffect(() => {
     if (!RRuleLib) return;
 
@@ -111,6 +112,18 @@ export default function CustomRepeatModal({ open, onClose, onApply, initialRRule
 
     const ruleStr = buildRRuleString();
     setRRuleString(ruleStr);
+
+    // Generate preview text
+    try {
+      const r = RRuleLib.rrulestr(ruleStr);
+      let preview = r.toText();
+      if (preview && preview.length > 0) {
+        preview = preview.charAt(0).toUpperCase() + preview.slice(1);
+      }
+      setPreviewText(preview);
+    } catch {
+      setPreviewText("");
+    }
   }, [freq, interval, byweekday, bysetpos, RRuleLib]);
 
   const handleFreqChange = (val: string) => {
@@ -138,22 +151,9 @@ export default function CustomRepeatModal({ open, onClose, onApply, initialRRule
 
   const handleApply = () => {
     const repaired = rruleString && !rruleString.startsWith("RRULE:") ? "RRULE:" + rruleString : rruleString;
-    onApply(repaired);
+    onApply(repaired, previewText);
     onClose();
   };
-
-  let preview = "";
-  if (RRuleLib) {
-    try {
-      const r = RRuleLib.rrulestr(rruleString);
-      preview = r.toText();
-      if (preview && preview.length > 0) {
-        preview = preview.charAt(0).toUpperCase() + preview.slice(1);
-      }
-    } catch {
-      preview = "";
-    }
-  }
 
   if (!RRuleLib) {
     return (
@@ -200,7 +200,7 @@ export default function CustomRepeatModal({ open, onClose, onApply, initialRRule
 
           <div className="mt-4 bg-accent/20 p-3 rounded font-poppins">
             <div className="text-muted-foreground text-sm mb-1">Preview:</div>
-            <span>{preview || rruleString}</span>
+            <span>{previewText || rruleString}</span>
           </div>
         </div>
         <DialogFooter className="mt-4">

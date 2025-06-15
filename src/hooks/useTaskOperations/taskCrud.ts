@@ -107,6 +107,8 @@ export const useTaskCrud = ({
         isActive: data.is_active,
         createdAt: data.created_at,
         completedDates: [],
+        customRrule: data.custom_rrule,
+        customRruleText: data.custom_rrule_text,
       };
       
       // Optimistically update UI
@@ -142,7 +144,7 @@ export const useTaskCrud = ({
     }
   };
 
-  const updateTask = async (id: string, updates: Partial<Task> & { customRrule?: string }) => {
+  const updateTask = async (id: string, updates: Partial<Task> & { customRrule?: string; customRruleText?: string }) => {
     if (!user) return;
 
     // Validate input if title or category is being updated
@@ -201,7 +203,7 @@ export const useTaskCrud = ({
       // Revert optimistic update
       await fetchTasks();
       
-      if (isNetworkError(error)) {
+      if (isNetworkError(error) {
         toast({
           title: "Connection Error",
           description: "Unable to update task. Please check your connection and try again.",

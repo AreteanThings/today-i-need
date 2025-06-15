@@ -67,6 +67,7 @@ export default function TaskEntryForm({ onClose, editingTask }: TaskEntryFormPro
 
   const [customRepeatOpen, setCustomRepeatOpen] = useState(false);
   const [customRrule, setCustomRrule] = useState<string | undefined>(editingTask?.customRrule);
+  const [customRruleText, setCustomRruleText] = useState<string | undefined>(editingTask?.customRruleText);
 
   const isFormLoading = isSubmitting || isLoading('addTask') || isLoading(`updateTask-${editingTask?.id}`);
 
@@ -83,6 +84,7 @@ export default function TaskEntryForm({ onClose, editingTask }: TaskEntryFormPro
         isShared: editingTask.isShared,
       });
       setCustomRrule(editingTask.customRrule || '');
+      setCustomRruleText(editingTask.customRruleText || '');
     }
   }, [editingTask, reset]);
 
@@ -108,6 +110,7 @@ export default function TaskEntryForm({ onClose, editingTask }: TaskEntryFormPro
         await updateTask(editingTask.id, {
           ...data,
           customRrule: data.repeatValue === "custom" ? customRrule : undefined,
+          customRruleText: data.repeatValue === "custom" ? customRruleText : undefined,
           endDate: data.endDate || undefined
         });
       } else {
@@ -120,6 +123,7 @@ export default function TaskEntryForm({ onClose, editingTask }: TaskEntryFormPro
           repeatValue: data.repeatValue,
           isShared: data.isShared,
           customRrule: data.repeatValue === "custom" ? customRrule : undefined,
+          customRruleText: data.repeatValue === "custom" ? customRruleText : undefined,
         };
         await addTask(taskData);
       }
@@ -150,6 +154,8 @@ export default function TaskEntryForm({ onClose, editingTask }: TaskEntryFormPro
         setCustomRepeatOpen={setCustomRepeatOpen}
         customRrule={customRrule}
         setCustomRrule={setCustomRrule}
+        customRruleText={customRruleText}
+        setCustomRruleText={setCustomRruleText}
       />
       <ShareField
         checked={watch("isShared")}

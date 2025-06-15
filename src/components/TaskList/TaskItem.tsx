@@ -16,8 +16,6 @@ import {
 import { Task } from "@/types/task";
 import { getTaskDisplayInfo } from "@/utils/taskUtils";
 import { formatDisplayDate } from "@/utils/dateHelpers";
-import { getRRuleText } from "@/utils/getRRuleText";
-import { repairCustomRrule } from "@/utils/repairCustomRrule";
 
 interface TaskItemProps {
   task: Task;
@@ -34,28 +32,21 @@ const TaskItem = ({ task, onEdit, onDelete }: TaskItemProps) => {
   );
   
   if (task.repeatValue === "custom") {
-    console.log("Processing custom task:", task.title, "customRrule:", task.customRrule);
-    
-    if (task.customRrule && task.customRrule.trim()) {
-      const repairedRule = repairCustomRrule(task.customRrule);
-      let ruleText = getRRuleText(repairedRule);
-      console.log("Repaired rule:", repairedRule, "Rule text:", ruleText);
-      
-      if (ruleText && ruleText.length > 0) {
-        ruleText = ruleText.charAt(0).toUpperCase() + ruleText.slice(1);
-        repeatDesc = (
-          <span>Repeats: {ruleText}</span>
-        );
-      } else {
-        repeatDesc = (
-          <span>
-            Repeats:{" "}
-            <span className="font-mono text-xs text-muted-foreground">
-              {task.customRrule}
-            </span>
+    if (task.customRruleText) {
+      // Use the saved human-readable text
+      repeatDesc = (
+        <span>Repeats: {task.customRruleText}</span>
+      );
+    } else if (task.customRrule && task.customRrule.trim()) {
+      // Fallback to showing the raw rule if no text was saved
+      repeatDesc = (
+        <span>
+          Repeats:{" "}
+          <span className="font-mono text-xs text-muted-foreground">
+            {task.customRrule}
           </span>
-        );
-      }
+        </span>
+      );
     } else {
       repeatDesc = (
         <span>
