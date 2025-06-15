@@ -3,9 +3,6 @@ import React from "react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import CustomRepeatModal from "../CustomRepeatModal";
-import { getRRuleText } from "@/utils/getRRuleText";
-import { useEffect } from "react";
-import { repairCustomRrule } from "@/utils/repairCustomRrule";
 
 interface RepeatFieldProps {
   repeatValue: string;
@@ -28,21 +25,7 @@ const RepeatField = ({
   customRruleText,
   setCustomRruleText,
 }: RepeatFieldProps) => {
-  // Only auto-open custom modal if user selects "custom" from dropdown, not on initial mount/edit
-  const prevRepeatValue = React.useRef<string>(repeatValue);
-  const didMount = React.useRef(false);
-
-  useEffect(() => {
-    if (!didMount.current) {
-      didMount.current = true;
-      prevRepeatValue.current = repeatValue;
-      return;
-    }
-    if (repeatValue === "custom" && prevRepeatValue.current !== "custom") {
-      setCustomRepeatOpen(true);
-    }
-    prevRepeatValue.current = repeatValue;
-  }, [repeatValue, setCustomRepeatOpen]);
+  // Removed auto-open logic for custom modal (was previously using useEffect and prevRepeatValue)
 
   const handleApplyCustomRepeat = (rruleString: string, previewText: string) => {
     setCustomRrule(rruleString);
@@ -69,12 +52,19 @@ const RepeatField = ({
         </SelectContent>
       </Select>
       {repeatValue === "custom" && (customRruleText || customRrule) && (
-        <div className="mt-2 bg-accent/20 p-2 rounded font-poppins text-xs">
+        <div className="mt-2 bg-accent/20 p-2 rounded font-poppins text-xs flex items-center gap-2">
           {customRruleText ? (
             <>Custom: <span className="font-semibold">{customRruleText}</span></>
           ) : (
             <>Custom: <span className="font-mono">{customRrule}</span></>
           )}
+          <button
+            type="button"
+            onClick={() => setCustomRepeatOpen(true)}
+            className="ml-2 px-2 py-1 text-foreground bg-accent rounded hover:bg-accent/50 border border-border text-xs"
+          >
+            Edit
+          </button>
         </div>
       )}
       <CustomRepeatModal
