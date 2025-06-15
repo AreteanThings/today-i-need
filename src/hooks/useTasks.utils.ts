@@ -1,3 +1,4 @@
+
 import { Task } from "@/types/task";
 import { rrulestr } from "rrule";
 
@@ -64,6 +65,31 @@ export const isTaskDueOnDate = (task: Task, date: Date): boolean => {
 export const getNextDueDate = (task: Task): string | null => {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
+
+  // Special logic for "custom" (i.e. RRULE-based) tasks
+  if (task.repeatValue === "custom" && task.customRrule) {
+    try {
+      let ruleString = task.customRrule.startsWith("RRULE:") ? task.customRrule : "RRULE:" + task.customRrule;
+      const rule = rrulestr(ruleString, { dtstart: new Date(task.startDate) });
+      // Get the next valid occurrence after today
+      const afterDate = new Date(today);
+      afterDate.setDate(afterDate.getDate() + 1);
+      // Return the next date after today that has not been completed
+      let candidate = rule.after(today, true);
+      while (candidate && candidate <= (task.endDate ? new Date(task.endDate) : candidate)) {
+        const candidateStr = candidate.toISOString().split('T')[0];
+        if (!task.completedDates.some(cd => cd.date === candidateStr)) {
+          return candidateStr;
+        }
+        candidate = rule.after(candidate, false); // Go to next occurrence if this one is already completed
+      }
+      return null;
+    } catch {
+      // fallback to old loop-based if RRULE errors
+      // continue to generic code below
+    }
+  }
+
   let checkDate = new Date(today);
   let cycles = 0;
 
@@ -108,3 +134,4 @@ export const getMostRecentOverdueDate = (task: Task): string | null => {
 
   return mostRecent ? mostRecent.toISOString().split('T')[0] : null;
 };
+

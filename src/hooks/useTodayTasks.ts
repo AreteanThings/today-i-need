@@ -25,6 +25,7 @@ export const useTodayTasks = (tasks: Task[], hiddenOverdueTasks: Set<string>): T
       const isDueToday = isTaskDueOnDate(task, today);
       
       if (isDueToday) {
+        // Only count completions for today
         const todayCompletion = task.completedDates.find(cd => cd.date === todayStr);
         
         if (todayCompletion) {
@@ -53,15 +54,18 @@ export const useTodayTasks = (tasks: Task[], hiddenOverdueTasks: Set<string>): T
             const taskWithDateId = `${task.id}-${checkDateStr}`;
             
             if (completion) {
-              // Overdue task that was completed - add to done section
-              done.push({
-                ...task,
-                completedAt: completion.completedAt,
-                completedBy: completion.completedBy,
-                dueDate: checkDate.toISOString(),
-                id: taskWithDateId,
-                wasOverdue: true
-              });
+              // Overdue task that was completed - add to done section ONLY IF IT WAS COMPLETED TODAY
+              if (completion.date === todayStr) {
+                done.push({
+                  ...task,
+                  completedAt: completion.completedAt,
+                  completedBy: completion.completedBy,
+                  dueDate: checkDate.toISOString(),
+                  id: taskWithDateId,
+                  wasOverdue: true
+                });
+              }
+              // If completed on a previous day, do not push to 'done' for today screen
             } else if (!hiddenOverdueTasks.has(taskWithDateId)) {
               // Overdue task that's still incomplete and not hidden
               overdue.push({
