@@ -7,7 +7,7 @@ const TodayHeader = ({ totalActiveTasks }: TodayHeaderProps) => {
   return (
     <div className="mb-4">
       <h1 className="text-2xl font-bold text-foreground font-poppins">
-        Today - {new Date().toLocaleDateString('en-US', { 
+        Today is {new Date().toLocaleDateString('en-US', { 
           weekday: 'long', 
           month: 'long', 
           day: 'numeric' 
