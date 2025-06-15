@@ -75,14 +75,14 @@ const TaskSection = ({
                         
                         {/* Completion info for done tasks */}
                         {type === 'done' && task.completedDates && task.completedDates.length > 0 && (
-                          <div className="flex items-center gap-4 mt-2 text-xs text-muted-foreground">
+                          <div className="flex items-center gap-3 mt-2 text-xs text-muted-foreground">
                             <div className="flex items-center gap-1">
                               <Clock className="h-3 w-3" />
-                              {formatRelativeDateTime(task.completedDates[task.completedDates.length - 1].completedAt)}
+                              <span>{formatRelativeDateTime(task.completedDates[task.completedDates.length - 1].completedAt)}</span>
                             </div>
                             <div className="flex items-center gap-1">
                               <User className="h-3 w-3" />
-                              {task.completedDates[task.completedDates.length - 1].completedBy || 'You'}
+                              <span>{task.completedDates[task.completedDates.length - 1].completedBy || 'You'}</span>
                             </div>
                             {/* Show if this was an overdue task that got completed */}
                             {(task as any).wasOverdue && (
@@ -98,7 +98,7 @@ const TaskSection = ({
                         {type === 'overdue' && task.startDate && (
                           <div className="flex items-center gap-1 mt-2 text-xs text-destructive">
                             <Calendar className="h-3 w-3" />
-                            Due: {formatRelativeDate(task.startDate)}
+                            <span>Due: {formatRelativeDate(task.startDate)}</span>
                           </div>
                         )}
                       </div>
