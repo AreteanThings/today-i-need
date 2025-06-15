@@ -1,4 +1,3 @@
-
 import { Task } from "@/types/task";
 import { useFetchTasks } from './useFetchTasks';
 import { useMutateTasks } from './useMutateTasks';
@@ -14,6 +13,7 @@ export const useTaskCrud = ({
 }: TaskCrudSharedProps) => {
   // Only pass setLoading to fetchTasks, omit for others
   const { fetchTasks } = useFetchTasks({
+    tasks, // <--- Fix: add this prop
     setTasks,
     user,
     toast,

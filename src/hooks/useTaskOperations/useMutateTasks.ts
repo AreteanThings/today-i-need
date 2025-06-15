@@ -1,4 +1,3 @@
-
 import { Task } from "@/types/task";
 import {
   insertTaskToSupabase,
@@ -12,6 +11,7 @@ import {
   validateDateRange,
 } from '@/utils/validation';
 import { TaskCrudSharedProps, TaskBaseInput } from "./taskCrud.types";
+import { asRepeatValue } from "../useTasks.utils";
 
 /**
  * Handles add, update, delete Task operations.
@@ -58,7 +58,7 @@ export const useMutateTasks = ({
         subtitle: data.subtitle,
         startDate: data.start_date,
         endDate: data.end_date,
-        repeatValue: data.repeat_value,
+        repeatValue: asRepeatValue(data.repeat_value),
         isShared: data.is_shared,
         isActive: data.is_active,
         createdAt: data.created_at,
