@@ -78,17 +78,20 @@ const TaskSection = ({
                           <div className="flex items-center gap-3 mt-2 text-xs text-muted-foreground">
                             <div className="flex items-center gap-1">
                               <Clock className="h-3 w-3" />
-                              <span>{formatRelativeDateTime(task.completedDates[task.completedDates.length - 1].completedAt)}</span>
+                              <span>{formatRelativeDateTime(task.completedDates[task.completedDates.length - 1].completedAt).replace('Today at', 'Done at')}</span>
                             </div>
-                            <div className="flex items-center gap-1">
-                              <User className="h-3 w-3" />
-                              <span>{task.completedDates[task.completedDates.length - 1].completedBy || 'You'}</span>
-                            </div>
+                            {/* Only show who completed it for shared tasks */}
+                            {task.isShared && (
+                              <div className="flex items-center gap-1">
+                                <User className="h-3 w-3" />
+                                <span>{task.completedDates[task.completedDates.length - 1].completedBy || 'You'}</span>
+                              </div>
+                            )}
                             {/* Show if this was an overdue task that got completed */}
                             {(task as any).wasOverdue && (
                               <div className="flex items-center gap-1">
                                 <Calendar className="h-3 w-3" />
-                                <span className="text-green-600">Overdue task completed</span>
+                                <span className="text-green-600">Overdue</span>
                               </div>
                             )}
                           </div>
