@@ -128,30 +128,34 @@ const Auth = () => {
           </TabsList>
           
           <TabsContent value="signin">
-            <form onSubmit={handleSignIn}>
+            <form onSubmit={handleSignIn} autoComplete="off">
               <CardContent className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="email">Email</Label>
+                  <Label htmlFor="signin-email">Email</Label>
                   <Input
-                    id="email"
+                    id="signin-email"
+                    name="signin-email"
                     type="email"
                     placeholder="Enter your email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required
-                    autoComplete="email"
+                    autoComplete="off"
+                    data-form-type="other"
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="password">Password</Label>
+                  <Label htmlFor="signin-password">Password</Label>
                   <Input
-                    id="password"
+                    id="signin-password"
+                    name="signin-password"
                     type="password"
                     placeholder="Enter your password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
-                    autoComplete="current-password"
+                    autoComplete="off"
+                    data-form-type="other"
                   />
                 </div>
                 <div className="flex justify-end">
@@ -178,41 +182,47 @@ const Auth = () => {
           </TabsContent>
           
           <TabsContent value="signup">
-            <form onSubmit={handleSignUp}>
+            <form onSubmit={handleSignUp} autoComplete="off">
               <CardContent className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="fullname">Full Name</Label>
+                  <Label htmlFor="signup-fullname">Full Name</Label>
                   <Input
-                    id="fullname"
+                    id="signup-fullname"
+                    name="signup-fullname"
                     type="text"
                     placeholder="Enter your full name"
                     value={fullName}
                     onChange={(e) => setFullName(e.target.value)}
-                    autoComplete="name"
+                    autoComplete="off"
+                    data-form-type="other"
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="email-signup">Email</Label>
+                  <Label htmlFor="signup-email">Email</Label>
                   <Input
-                    id="email-signup"
+                    id="signup-email"
+                    name="signup-email"
                     type="email"
                     placeholder="Enter your email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required
-                    autoComplete="email"
+                    autoComplete="off"
+                    data-form-type="other"
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="password-signup">Password</Label>
+                  <Label htmlFor="signup-password">Password</Label>
                   <Input
-                    id="password-signup"
+                    id="signup-password"
+                    name="signup-password"
                     type="password"
                     placeholder="Create a password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
-                    autoComplete="new-password"
+                    autoComplete="off"
+                    data-form-type="other"
                   />
                 </div>
               </CardContent>
