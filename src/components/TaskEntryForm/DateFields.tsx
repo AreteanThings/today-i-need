@@ -15,56 +15,19 @@ interface DateFieldsProps {
   register: any;
   errors: { startDate?: any; endDate?: any };
   setValue?: (name: string, value: any) => void;
-  watch?: any;
+  watch?: (name: string) => any;
 }
 
-const DateFields = ({ register, errors }: DateFieldsProps) => {
-  // These must be props if using react-hook-form context, else just watch as optional support.
-  // fallback if not provided (for testing/legacy)
+const DateFields = ({ register, errors, setValue, watch }: DateFieldsProps) => {
+  // Use watch and setValue props to get and set field values
+  // Fallback values for legacy/test (should never hit in this app)
   let startDateValue: string | null = "";
   let endDateValue: string | null = "";
-  let setValue: ((name: string, value: any) => void) | undefined;
-  let watch: any;
 
-  // For react-hook-form context support
-  if ((window as any).lovable_rhf_context) {
-    // This block is for Lovable internal override, ignore in real usage.
-    const { setValue: rhfSetValue, watch: rhfWatch } = (window as any).lovable_rhf_context;
-    setValue = rhfSetValue;
-    watch = rhfWatch;
-    startDateValue = watch("startDate");
-    endDateValue = watch("endDate");
-  } else if (typeof register === "object" && "name" in register) {
-    // legacy pattern
-    setValue = register.setValue;
-    watch = register.watch;
-    startDateValue = watch("startDate");
-    endDateValue = watch("endDate");
-  } else {
-    // Most usage (as in current TaskEntryForm)
-    if (typeof register === "function" && typeof arguments[0] === "object") {
-      const { setValue: propSetValue, watch: propWatch } = arguments[0];
-      setValue = propSetValue;
-      watch = propWatch;
-      if (watch) {
-        startDateValue = watch("startDate");
-        endDateValue = watch("endDate");
-      }
-    }
-  }
-
-  // Accept context for setValue and watch if passed
-  if ("setValue" in arguments[0] && typeof arguments[0]?.setValue === "function") {
-    setValue = arguments[0].setValue;
-  }
-  if ("watch" in arguments[0] && typeof arguments[0]?.watch === "function") {
-    watch = arguments[0].watch;
+  if (watch) {
     startDateValue = watch("startDate");
     endDateValue = watch("endDate");
   }
-
-  // (If those are not available, fall back to just trying to get the registered values)
-  // In real app, these are passed via props from useForm.
 
   return (
     <div className="grid grid-cols-2 gap-3">
