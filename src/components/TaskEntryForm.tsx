@@ -2,6 +2,7 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { Task } from "@/types/task";
 import { useTasks } from "@/hooks/useTasks";
 import { useToast } from "@/hooks/use-toast";
 import { useLoading } from "@/contexts/LoadingContext";
@@ -37,7 +38,7 @@ type TaskFormData = z.infer<typeof taskSchema>;
 
 interface TaskEntryFormProps {
   onClose: () => void;
-  editingTask?: any;
+  editingTask?: Task;
 }
 
 export default function TaskEntryForm({ onClose, editingTask }: TaskEntryFormProps) {
@@ -60,7 +61,7 @@ export default function TaskEntryForm({ onClose, editingTask }: TaskEntryFormPro
       subtitle: "",
       startDate: new Date().toISOString().split("T")[0],
       endDate: "",
-      repeatValue: "daily" as const,
+      repeatValue: "daily",
       isShared: false,
     },
   });
@@ -90,7 +91,7 @@ export default function TaskEntryForm({ onClose, editingTask }: TaskEntryFormPro
 
   const onSubmit = async (data: TaskFormData) => {
     const existingTask = tasks.find(
-      (task) =>
+      (task: Task) =>
         task.title === data.title &&
         task.isActive &&
         (!editingTask || task.id !== editingTask.id)
@@ -161,13 +162,13 @@ export default function TaskEntryForm({ onClose, editingTask }: TaskEntryFormPro
         checked={watch("isShared")}
         onCheckedChange={checked => setValue("isShared", !!checked)}
       />
-      
+
       {isFormLoading && (
         <div className="flex justify-center py-4">
           <LoadingSpinner text="Saving task..." />
         </div>
       )}
-      
+
       <FormActions 
         onCancel={handleCancel} 
         isSubmitting={isFormLoading}
