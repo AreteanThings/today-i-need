@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { Plus, List, Calendar, Info, LogOut } from "lucide-react";
+import { Plus, List, Calendar, Info } from "lucide-react";
 import TaskEntry from "@/components/TaskEntry";
 import TaskList from "@/components/TaskList";
 import TodayList from "@/components/TodayList";
@@ -24,10 +24,6 @@ const Index = () => {
   const handleCloseTaskEntry = () => {
     setShowTaskEntry(false);
     setEditingTask(null);
-  };
-
-  const handleLogout = () => {
-    signOut();
   };
 
   // Show loading state
@@ -63,7 +59,7 @@ const Index = () => {
         {/* Header */}
         <div className="header-gradient text-white p-4 flex justify-between items-center h-16">
           <h1 className="text-2xl font-bold">Today I Need</h1>
-          {activeTab !== "about" && activeTab !== "logout" && (
+          {activeTab !== "about" && (
             <Button
               size="sm"
               variant="secondary"
@@ -77,7 +73,7 @@ const Index = () => {
 
         {/* Navigation */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid grid-cols-4 w-full">
+          <TabsList className="grid grid-cols-3 w-full">
             <TabsTrigger value="today" className="flex items-center gap-1">
               <Calendar className="h-4 w-4" />
               Today
@@ -89,10 +85,6 @@ const Index = () => {
             <TabsTrigger value="about" className="flex items-center gap-1">
               <Info className="h-4 w-4" />
               About
-            </TabsTrigger>
-            <TabsTrigger value="logout" className="flex items-center gap-1" onClick={handleLogout}>
-              <LogOut className="h-4 w-4" />
-              Logout
             </TabsTrigger>
           </TabsList>
 
@@ -106,11 +98,6 @@ const Index = () => {
 
           <TabsContent value="about" className="mt-0">
             <About />
-          </TabsContent>
-
-          <TabsContent value="logout" className="mt-0">
-            {/* This content won't be shown as logout triggers immediately */}
-            <div></div>
           </TabsContent>
         </Tabs>
       </div>

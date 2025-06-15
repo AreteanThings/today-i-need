@@ -1,7 +1,16 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { LogOut } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
 
 const About = () => {
+  const { signOut } = useAuth();
+
+  const handleLogout = () => {
+    signOut();
+  };
+
   return (
     <div className="p-4 pb-20">
       <div className="mb-4">
@@ -43,6 +52,17 @@ const About = () => {
             Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, 
             sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt.
           </p>
+
+          <div className="pt-4 border-t">
+            <Button 
+              onClick={handleLogout}
+              variant="outline"
+              className="w-full flex items-center gap-2"
+            >
+              <LogOut className="h-4 w-4" />
+              Logout
+            </Button>
+          </div>
         </CardContent>
       </Card>
     </div>
