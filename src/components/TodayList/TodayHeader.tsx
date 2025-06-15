@@ -1,4 +1,5 @@
 
+
 interface TodayHeaderProps {
   totalActiveTasks: number;
 }
@@ -14,10 +15,11 @@ const TodayHeader = ({ totalActiveTasks }: TodayHeaderProps) => {
         })}
       </h1>
       <p className="text-muted-foreground">
-        You have <span className="font-bold">{totalActiveTasks}</span> {totalActiveTasks === 1 ? 'task' : 'tasks'} for today
+        You have <span className="font-bold">{totalActiveTasks}</span> <span className="font-bold">{totalActiveTasks === 1 ? 'task' : 'tasks'}</span> for today
       </p>
     </div>
   );
 };
 
 export default TodayHeader;
+
