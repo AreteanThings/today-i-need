@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { Task } from "@/types/task";
 import { asRepeatValue } from "./useTasks.utils";
@@ -40,7 +39,9 @@ export const fetchTasksFromSupabase = async (userId: string) => {
         date: completion.completed_date,
         completedAt: completion.completed_at,
         completedBy: "You"
-      }))
+      })),
+    customRrule: task.custom_rrule,
+    customRruleText: task.custom_rrule_text,
   }));
 
   return tasksWithCompletions;
@@ -58,6 +59,8 @@ export const insertTaskToSupabase = async (taskData: Omit<Task, "id" | "isActive
       end_date: taskData.endDate,
       repeat_value: taskData.repeatValue,
       is_shared: taskData.isShared,
+      custom_rrule: taskData.customRrule,
+      custom_rrule_text: taskData.customRruleText,
     })
     .select()
     .single();
@@ -66,7 +69,7 @@ export const insertTaskToSupabase = async (taskData: Omit<Task, "id" | "isActive
   return data;
 };
 
-export const updateTaskInSupabase = async (id: string, updates: Partial<Task>, userId: string) => {
+export const updateTaskInSupabase = async (id: string, updates: Partial<Task> & { customRrule?: string; customRruleText?: string }, userId: string) => {
   const { error } = await supabase
     .from('tasks')
     .update({
@@ -77,7 +80,9 @@ export const updateTaskInSupabase = async (id: string, updates: Partial<Task>, u
       end_date: updates.endDate,
       repeat_value: updates.repeatValue,
       is_shared: updates.isShared,
-      updated_at: new Date().toISOString(),  // Now this column exists, so no error!
+      custom_rrule: updates.customRrule,
+      custom_rrule_text: updates.customRruleText,
+      updated_at: new Date().toISOString(),
     })
     .eq('id', id)
     .eq('user_id', userId);

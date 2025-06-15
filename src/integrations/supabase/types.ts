@@ -45,6 +45,8 @@ export type Database = {
         Row: {
           category: string
           created_at: string
+          custom_rrule: string | null
+          custom_rrule_text: string | null
           end_date: string | null
           id: string
           is_active: boolean
@@ -59,6 +61,8 @@ export type Database = {
         Insert: {
           category: string
           created_at?: string
+          custom_rrule?: string | null
+          custom_rrule_text?: string | null
           end_date?: string | null
           id?: string
           is_active?: boolean
@@ -73,6 +77,8 @@ export type Database = {
         Update: {
           category?: string
           created_at?: string
+          custom_rrule?: string | null
+          custom_rrule_text?: string | null
           end_date?: string | null
           id?: string
           is_active?: boolean
