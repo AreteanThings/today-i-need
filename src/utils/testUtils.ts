@@ -84,9 +84,10 @@ export const createMockToast = () => ({
   variant: "default" as const,
 });
 
-export const mockSetGlobalLoading = jest.fn();
-export const mockSetLoading = jest.fn();
-export const mockSetTasks = jest.fn();
+// Mock functions for testing (removing jest dependencies)
+export const mockSetGlobalLoading = () => {};
+export const mockSetLoading = () => {};
+export const mockSetTasks = () => {};
 
 // Helper to wait for async operations in tests
 export const waitFor = (ms: number = 0): Promise<void> => 

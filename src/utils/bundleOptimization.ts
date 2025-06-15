@@ -1,4 +1,6 @@
 
+import React from 'react';
+
 // Bundle optimization utilities
 // These help reduce bundle size by providing tree-shakable exports
 
