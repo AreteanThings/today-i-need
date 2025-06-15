@@ -14,7 +14,7 @@ const TodayHeader = ({ totalActiveTasks }: TodayHeaderProps) => {
         })}
       </h1>
       <p className="text-muted-foreground">
-        You have {totalActiveTasks} {totalActiveTasks === 1 ? 'task' : 'tasks'} for today
+        You have <span className="font-bold">{totalActiveTasks}</span> {totalActiveTasks === 1 ? 'task' : 'tasks'} for today
       </p>
     </div>
   );
