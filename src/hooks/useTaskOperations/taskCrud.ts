@@ -1,4 +1,3 @@
-
 import { Task } from "@/types/task";
 import { asRepeatValue } from '../useTasks.utils';
 import {
@@ -203,7 +202,7 @@ export const useTaskCrud = ({
       // Revert optimistic update
       await fetchTasks();
       
-      if (isNetworkError(error) {
+      if (isNetworkError(error)) {
         toast({
           title: "Connection Error",
           description: "Unable to update task. Please check your connection and try again.",
