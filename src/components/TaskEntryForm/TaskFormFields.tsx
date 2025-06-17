@@ -79,7 +79,10 @@ const TaskFormFields = ({ form, categories, editingTask }: TaskFormFieldsProps) 
       {/* Date Fields */}
       <DateFields 
         register={form.register}
-        errors={form.formState.errors}
+        errors={{
+          startDate: form.formState.errors.startDate,
+          endDate: form.formState.errors.endDate
+        }}
         setValue={form.setValue}
         watch={form.watch}
       />

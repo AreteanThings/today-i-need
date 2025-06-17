@@ -53,10 +53,17 @@ const TaskFormContainer = ({ editingTask, onCancel, onSuccess }: TaskFormContain
 
   const onSubmit = async (data: TaskFormData) => {
     try {
-      // Ensure category is provided for the API call
+      // Ensure all required fields are present for TaskBaseInput
       const taskData = {
-        ...data,
-        category: data.category || "", // Fallback to empty string, though validation should catch this
+        title: data.title,
+        category: data.category,
+        subtitle: data.subtitle || "",
+        startDate: data.startDate,
+        endDate: data.endDate || "",
+        repeatValue: data.repeatValue,
+        isShared: data.isShared,
+        customRrule: data.customRrule || "",
+        customRruleText: data.customRruleText || "",
       };
 
       if (editingTask) {
