@@ -21,7 +21,7 @@ const TaskEntry = ({ onClose, editingTask }: TaskEntryProps) => {
         <TaskEntryHeader onCancel={handleCancel} editingTask={editingTask} />
         {/* Form */}
         <div className="p-4 space-y-6">
-          <TaskEntryForm onClose={handleCancel} editingTask={editingTask} />
+          <TaskEntryForm onCancel={handleCancel} editingTask={editingTask} />
         </div>
       </div>
     </div>

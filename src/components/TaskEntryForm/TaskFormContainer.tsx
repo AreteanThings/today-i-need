@@ -53,10 +53,16 @@ const TaskFormContainer = ({ editingTask, onCancel, onSuccess }: TaskFormContain
 
   const onSubmit = async (data: TaskFormData) => {
     try {
+      // Ensure category is provided for the API call
+      const taskData = {
+        ...data,
+        category: data.category || "", // Fallback to empty string, though validation should catch this
+      };
+
       if (editingTask) {
-        await updateTask(editingTask.id, data);
+        await updateTask(editingTask.id, taskData);
       } else {
-        await addTask(data);
+        await addTask(taskData);
       }
       onSuccess?.();
     } catch (error) {
@@ -90,10 +96,10 @@ const TaskFormContainer = ({ editingTask, onCancel, onSuccess }: TaskFormContain
       </Form>
 
       <CustomRepeatModal
-        isOpen={isCustomRepeatOpen}
+        open={isCustomRepeatOpen}
         onClose={() => setIsCustomRepeatOpen(false)}
-        onSave={handleCustomRepeatSave}
-        initialRrule={form.getValues("customRrule")}
+        onApply={handleCustomRepeatSave}
+        initialRRule={form.getValues("customRrule")}
       />
     </>
   );
