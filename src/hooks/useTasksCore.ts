@@ -7,6 +7,7 @@ import { Task } from "@/types/task";
 import { asRepeatValue, isTaskDueOnDate } from './useTasks.utils';
 import { useTaskOperations } from './useTaskOperations';
 import { useTaskFilters } from './useTaskFilters';
+import { useRealtimeUpdates } from './useRealtimeUpdates';
 
 export const useTasksCore = () => {
   const [tasks, setTasks] = useState<Task[]>([]);
@@ -25,6 +26,12 @@ export const useTasksCore = () => {
   });
 
   const taskFilters = useTaskFilters(tasks);
+
+  // Set up real-time updates
+  useRealtimeUpdates({
+    onTasksUpdate: setTasks,
+    fetchTasks: taskOperations.fetchTasks
+  });
 
   // Load tasks from Supabase
   useEffect(() => {
