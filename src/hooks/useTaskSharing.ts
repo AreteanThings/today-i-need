@@ -86,6 +86,13 @@ export const useTaskSharing = () => {
 
     setLoading(true);
     try {
+      // First get the task details for the email
+      const { data: taskData } = await supabase
+        .from('tasks')
+        .select('title')
+        .eq('id', taskId)
+        .single();
+
       const assignments = [];
       
       for (const email of sharingData.selectedEmails) {
@@ -118,8 +125,8 @@ export const useTaskSharing = () => {
 
         assignments.push(typedAssignment);
 
-        // Send invitation email
-        await sendTaskInvitation(email, taskId, assignment.id);
+        // Send invitation email with proper task and sender info
+        await sendTaskInvitation(email, taskId, assignment.id, taskData?.title, user.email);
       }
 
       toast({
@@ -140,14 +147,17 @@ export const useTaskSharing = () => {
     }
   };
 
-  // Send task invitation email
-  const sendTaskInvitation = async (email: string, taskId: string, assignmentId: string) => {
+  // Send task invitation email with proper data
+  const sendTaskInvitation = async (email: string, taskId: string, assignmentId: string, taskTitle?: string, senderEmail?: string) => {
     try {
       const { error } = await supabase.functions.invoke('send-task-invitation', {
         body: {
           recipient_email: email,
           task_id: taskId,
           assignment_id: assignmentId,
+          sender_name: senderEmail,
+          task_title: taskTitle,
+          assignment_type: 'shared', // Default, could be made dynamic
         },
       });
 

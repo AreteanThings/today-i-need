@@ -25,8 +25,8 @@ export const useMutateTasks = ({
   setGlobalLoading,
   fetchTasks,
 }: TaskCrudSharedProps & { fetchTasks: () => Promise<void> }) => {
-  /** Add a new task after validation */
-  const addTask = async (taskData: TaskBaseInput) => {
+  /** Add a new task after validation - now returns the created task */
+  const addTask = async (taskData: TaskBaseInput): Promise<Task | undefined> => {
     if (!user) return;
 
     // Clean up date fields - convert empty strings to null/undefined
@@ -82,6 +82,8 @@ export const useMutateTasks = ({
         title: "Task Created",
         description: "Your task has been created successfully.",
       });
+      
+      return newTask; // Return the created task
     } catch (error) {
       console.error('Error adding task:', error);
       toast({
@@ -164,7 +166,6 @@ export const useMutateTasks = ({
     }
   };
 
-  /** Soft delete a task */
   const deleteTask = async (id: string) => {
     if (!user) return;
     try {

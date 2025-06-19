@@ -1,6 +1,7 @@
 
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { Resend } from "npm:resend@2.0.0";
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.50.0';
 
 const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
 
@@ -29,12 +30,50 @@ const handler = async (req: Request): Promise<Response> => {
       recipient_email, 
       task_id, 
       assignment_id,
-      sender_name = "Someone",
-      task_title = "a task",
+      sender_name,
+      task_title,
       assignment_type = "shared"
     }: TaskInvitationRequest = await req.json();
 
-    const appUrl = "https://pdtswpdmbokckjdbmxnh.supabase.co"; // Your app URL
+    // Initialize Supabase client to fetch missing data
+    const supabase = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+    );
+
+    let finalTaskTitle = task_title;
+    let finalSenderName = sender_name;
+
+    // Fetch task details if not provided
+    if (!finalTaskTitle && task_id) {
+      const { data: task } = await supabase
+        .from('tasks')
+        .select('title')
+        .eq('id', task_id)
+        .single();
+      
+      if (task) {
+        finalTaskTitle = task.title;
+      }
+    }
+
+    // Fetch sender details if not provided
+    if (!finalSenderName && assignment_id) {
+      const { data: assignment } = await supabase
+        .from('task_assignments')
+        .select('assigner_id')
+        .eq('id', assignment_id)
+        .single();
+      
+      if (assignment) {
+        const { data: user } = await supabase.auth.admin.getUserById(assignment.assigner_id);
+        if (user?.user?.email) {
+          finalSenderName = user.user.email;
+        }
+      }
+    }
+
+    const appUrl = "https://pdtswpdmbokckjdbmxnh.supabase.co";
     const acceptUrl = `${appUrl}/accept-invitation?assignment=${assignment_id}`;
 
     const actionText = assignment_type === 'shared' ? 'shared' : 'assigned';
@@ -45,17 +84,17 @@ const handler = async (req: Request): Promise<Response> => {
     const emailResponse = await resend.emails.send({
       from: "TaskApp <onboarding@resend.dev>",
       to: [recipient_email],
-      subject: `You've been ${assignment_type === 'shared' ? 'invited to collaborate on' : 'assigned'} a task: ${task_title}`,
+      subject: `You've been ${assignment_type === 'shared' ? 'invited to collaborate on' : 'assigned'} a task: ${finalTaskTitle || 'a task'}`,
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
           <h1 style="color: #333; margin-bottom: 20px;">Task ${assignment_type === 'shared' ? 'Collaboration' : 'Assignment'} Invitation</h1>
           
           <p>Hi there!</p>
           
-          <p><strong>${sender_name}</strong> has ${actionText} a task with you:</p>
+          <p><strong>${finalSenderName || 'Someone'}</strong> has ${actionText} a task with you:</p>
           
           <div style="background: #f5f5f5; padding: 15px; border-radius: 8px; margin: 20px 0;">
-            <h3 style="margin: 0; color: #333;">${task_title}</h3>
+            <h3 style="margin: 0; color: #333;">${finalTaskTitle || 'a task'}</h3>
           </div>
           
           <p style="color: #666; font-size: 14px;">${description}</p>

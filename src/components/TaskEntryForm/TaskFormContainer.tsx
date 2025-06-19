@@ -41,6 +41,7 @@ const TaskFormContainer = ({ editingTask, onCancel, onSuccess }: TaskFormContain
   const [isCustomRepeatOpen, setIsCustomRepeatOpen] = useState(false);
   const [isSharingModalOpen, setIsSharingModalOpen] = useState(false);
   const [pendingSharingData, setPendingSharingData] = useState<TaskSharingData | null>(null);
+  const [createdTask, setCreatedTask] = useState<Task | null>(null);
 
   const form = useForm<TaskFormData>({
     resolver: zodResolver(taskSchema),
@@ -83,18 +84,12 @@ const TaskFormContainer = ({ editingTask, onCancel, onSuccess }: TaskFormContain
         
         onSuccess?.();
       } else {
-        await addTask(taskData);
+        const newTask = await addTask(taskData);
         
-        // For new tasks, we can't get the task ID from addTask since it returns void
-        // The sharing will be handled separately or we need to refactor addTask to return the created task
-        if (pendingSharingData) {
-          // Note: This requires the addTask function to be refactored to return the created task
-          // For now, we'll clear the pending data and show a message
+        // If we have a new task and pending sharing data, share it immediately
+        if (newTask && pendingSharingData) {
+          await shareTask(newTask.id, pendingSharingData);
           setPendingSharingData(null);
-          toast({
-            title: "Task Created",
-            description: "Task created successfully. Please share it manually from the task list.",
-          });
         }
         
         onSuccess?.();
