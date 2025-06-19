@@ -1,3 +1,4 @@
+
 import { Task } from "@/types/task";
 import {
   insertTaskToSupabase,
@@ -28,10 +29,19 @@ export const useMutateTasks = ({
   const addTask = async (taskData: TaskBaseInput) => {
     if (!user) return;
 
+    // Clean up date fields - convert empty strings to null/undefined
+    const cleanedTaskData = {
+      ...taskData,
+      endDate: taskData.endDate && taskData.endDate.trim() !== '' ? taskData.endDate : undefined,
+      subtitle: taskData.subtitle && taskData.subtitle.trim() !== '' ? taskData.subtitle : undefined,
+      customRrule: taskData.customRrule && taskData.customRrule.trim() !== '' ? taskData.customRrule : undefined,
+      customRruleText: taskData.customRruleText && taskData.customRruleText.trim() !== '' ? taskData.customRruleText : undefined,
+    };
+
     // Validation
-    const tv = validateTaskTitle(taskData.title);
-    const cv = validateTaskCategory(taskData.category);
-    const dv = validateDateRange(taskData.startDate, taskData.endDate);
+    const tv = validateTaskTitle(cleanedTaskData.title);
+    const cv = validateTaskCategory(cleanedTaskData.category);
+    const dv = validateDateRange(cleanedTaskData.startDate, cleanedTaskData.endDate);
 
     if (!tv.isValid || !cv.isValid || !dv.isValid) {
       const allErrs = [...tv.errors, ...cv.errors, ...dv.errors];
@@ -46,7 +56,7 @@ export const useMutateTasks = ({
     try {
       setGlobalLoading('addTask', true);
       const data = await withRetry(
-        () => insertTaskToSupabase(taskData, user.id),
+        () => insertTaskToSupabase(cleanedTaskData, user.id),
         { maxAttempts: 2 }
       );
 
@@ -76,7 +86,7 @@ export const useMutateTasks = ({
       console.error('Error adding task:', error);
       toast({
         title: "Error Creating Task",
-        description: "Problem creating your task.",
+        description: "Problem creating your task. Please check your input and try again.",
         variant: "destructive",
       });
       throw error;
@@ -92,8 +102,17 @@ export const useMutateTasks = ({
   ) => {
     if (!user) return;
 
-    if (updates.title) {
-      const tv = validateTaskTitle(updates.title);
+    // Clean up date fields - convert empty strings to null/undefined
+    const cleanedUpdates = {
+      ...updates,
+      endDate: updates.endDate && updates.endDate.trim() !== '' ? updates.endDate : undefined,
+      subtitle: updates.subtitle && updates.subtitle.trim() !== '' ? updates.subtitle : undefined,
+      customRrule: updates.customRrule && updates.customRrule.trim() !== '' ? updates.customRrule : undefined,
+      customRruleText: updates.customRruleText && updates.customRruleText.trim() !== '' ? updates.customRruleText : undefined,
+    };
+
+    if (cleanedUpdates.title) {
+      const tv = validateTaskTitle(cleanedUpdates.title);
       if (!tv.isValid) {
         toast({
           title: "Validation Error",
@@ -103,8 +122,8 @@ export const useMutateTasks = ({
         throw new Error(tv.errors.join(', '));
       }
     }
-    if (updates.category) {
-      const cv = validateTaskCategory(updates.category);
+    if (cleanedUpdates.category) {
+      const cv = validateTaskCategory(cleanedUpdates.category);
       if (!cv.isValid) {
         toast({
           title: "Validation Error",
@@ -119,12 +138,12 @@ export const useMutateTasks = ({
       setTasks(prev =>
         prev.map(task =>
           task.id === id
-            ? { ...task, ...updates }
+            ? { ...task, ...cleanedUpdates }
             : task
         )
       );
       await withRetry(
-        () => updateTaskInSupabase(id, updates, user.id),
+        () => updateTaskInSupabase(id, cleanedUpdates, user.id),
         { maxAttempts: 2 }
       );
       toast({
