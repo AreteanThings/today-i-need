@@ -41,7 +41,6 @@ const TaskFormContainer = ({ editingTask, onCancel, onSuccess }: TaskFormContain
   const [isCustomRepeatOpen, setIsCustomRepeatOpen] = useState(false);
   const [isSharingModalOpen, setIsSharingModalOpen] = useState(false);
   const [pendingSharingData, setPendingSharingData] = useState<TaskSharingData | null>(null);
-  const [createdTask, setCreatedTask] = useState<Task | null>(null);
 
   const form = useForm<TaskFormData>({
     resolver: zodResolver(taskSchema),
@@ -82,6 +81,11 @@ const TaskFormContainer = ({ editingTask, onCancel, onSuccess }: TaskFormContain
           setPendingSharingData(null);
         }
         
+        toast({
+          title: "Task Updated",
+          description: "Your task has been updated successfully.",
+        });
+        
         onSuccess?.();
       } else {
         const newTask = await addTask(taskData);
@@ -91,6 +95,11 @@ const TaskFormContainer = ({ editingTask, onCancel, onSuccess }: TaskFormContain
           await shareTask(newTask.id, pendingSharingData);
           setPendingSharingData(null);
         }
+        
+        toast({
+          title: "Task Created",
+          description: "Your task has been created successfully.",
+        });
         
         onSuccess?.();
       }
