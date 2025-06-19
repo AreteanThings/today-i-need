@@ -23,7 +23,14 @@ export const useTaskSharing = () => {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setConnections(data || []);
+      
+      // Type assertion to handle database string types vs TypeScript union types
+      const typedConnections = (data || []).map(conn => ({
+        ...conn,
+        status: conn.status as 'pending' | 'accepted' | 'declined'
+      })) as UserConnection[];
+      
+      setConnections(typedConnections);
     } catch (error) {
       console.error('Error fetching connections:', error);
     }
@@ -42,7 +49,12 @@ export const useTaskSharing = () => {
         .eq('target_email', email)
         .single();
 
-      if (existing) return existing;
+      if (existing) {
+        return {
+          ...existing,
+          status: existing.status as 'pending' | 'accepted' | 'declined'
+        } as UserConnection;
+      }
 
       // Create new connection
       const { data, error } = await supabase
@@ -57,7 +69,11 @@ export const useTaskSharing = () => {
       if (error) throw error;
       
       await fetchConnections();
-      return data;
+      
+      return {
+        ...data,
+        status: data.status as 'pending' | 'accepted' | 'declined'
+      } as UserConnection;
     } catch (error) {
       console.error('Error creating connection:', error);
       return null;
@@ -93,7 +109,14 @@ export const useTaskSharing = () => {
           continue;
         }
 
-        assignments.push(assignment);
+        // Type assertion for database response
+        const typedAssignment = {
+          ...assignment,
+          assignment_type: assignment.assignment_type as 'shared' | 'assigned',
+          status: assignment.status as 'pending' | 'accepted' | 'declined'
+        } as TaskAssignment;
+
+        assignments.push(typedAssignment);
 
         // Send invitation email
         await sendTaskInvitation(email, taskId, assignment.id);
@@ -154,7 +177,15 @@ export const useTaskSharing = () => {
         .eq('task_id', taskId);
 
       if (error) throw error;
-      return data || [];
+      
+      // Type assertion for database response
+      const typedAssignments = (data || []).map(assignment => ({
+        ...assignment,
+        assignment_type: assignment.assignment_type as 'shared' | 'assigned',
+        status: assignment.status as 'pending' | 'accepted' | 'declined'
+      })) as TaskAssignment[];
+      
+      return typedAssignments;
     } catch (error) {
       console.error('Error fetching task assignments:', error);
       return [];
