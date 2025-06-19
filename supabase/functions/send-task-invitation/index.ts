@@ -37,6 +37,7 @@ const handler = async (req: Request): Promise<Response> => {
     
     console.log("Environment check:");
     console.log("- RESEND_API_KEY exists:", !!resendKey);
+    console.log("- RESEND_API_KEY length:", resendKey?.length || 0);
     console.log("- SUPABASE_URL exists:", !!supabaseUrl);
     console.log("- SUPABASE_SERVICE_ROLE_KEY exists:", !!supabaseServiceKey);
     
@@ -183,8 +184,12 @@ const handler = async (req: Request): Promise<Response> => {
       ? 'This task will appear in both your and the sender\'s Today list.'
       : 'This task has been assigned to you and will appear in your Today list.';
 
+    // IMPORTANT: Change this to your verified domain!
+    // For now using the test domain - you MUST replace this with your verified domain
+    const fromEmail = "TaskApp <hello@yourdomain.com>"; // ← REPLACE WITH YOUR VERIFIED DOMAIN
+    
     const emailData = {
-      from: "TaskApp <onboarding@resend.dev>",
+      from: fromEmail,
       to: [recipient_email],
       subject: `You've been ${assignment_type === 'shared' ? 'invited to collaborate on' : 'assigned'} a task: ${finalTaskTitle || 'a task'}`,
       html: `
@@ -228,19 +233,79 @@ const handler = async (req: Request): Promise<Response> => {
     console.log("- Subject:", emailData.subject);
     console.log("- Accept URL:", acceptUrl);
 
-    // Send email
-    console.log("🚀 Attempting to send email via Resend...");
-    const emailResponse = await resend.emails.send(emailData);
+    // Test Resend connection first
+    console.log("🔍 Testing Resend connection...");
+    try {
+      // Try to get domain info to test API key
+      console.log("📡 Attempting to send email via Resend...");
+      const emailResponse = await resend.emails.send(emailData);
+      
+      console.log("📬 Resend API response:", JSON.stringify(emailResponse, null, 2));
 
-    console.log("📬 Resend API response:", JSON.stringify(emailResponse, null, 2));
+      if (emailResponse.error) {
+        console.error("❌ Resend API returned an error:", emailResponse.error);
+        
+        // Provide specific error guidance
+        let errorMessage = "Failed to send email";
+        let errorDetails = emailResponse.error;
+        
+        if (typeof emailResponse.error === 'object' && emailResponse.error.message) {
+          const errorMsg = emailResponse.error.message.toLowerCase();
+          if (errorMsg.includes('domain') || errorMsg.includes('verify')) {
+            errorMessage = "Domain not verified. Please verify your domain in Resend dashboard.";
+            errorDetails = "Go to https://resend.com/domains to verify your domain";
+          } else if (errorMsg.includes('api') || errorMsg.includes('key')) {
+            errorMessage = "Invalid API key. Please check your RESEND_API_KEY.";
+          } else if (errorMsg.includes('from')) {
+            errorMessage = "Invalid 'from' email address. Must use verified domain.";
+          }
+        }
+        
+        return new Response(
+          JSON.stringify({ 
+            error: errorMessage,
+            details: errorDetails,
+            resendResponse: emailResponse,
+            troubleshooting: {
+              step1: "Verify your domain at https://resend.com/domains",
+              step2: "Check your API key at https://resend.com/api-keys",
+              step3: "Ensure 'from' email uses your verified domain"
+            }
+          }),
+          {
+            status: 500,
+            headers: { "Content-Type": "application/json", ...corsHeaders },
+          }
+        );
+      }
 
-    if (emailResponse.error) {
-      console.error("❌ Resend API returned an error:", emailResponse.error);
+      console.log("✅ Email sent successfully! Email ID:", emailResponse.data?.id);
+
+      return new Response(JSON.stringify({
+        success: true,
+        emailId: emailResponse.data?.id,
+        message: "Task invitation email sent successfully"
+      }), {
+        status: 200,
+        headers: {
+          "Content-Type": "application/json",
+          ...corsHeaders,
+        },
+      });
+
+    } catch (emailError: any) {
+      console.error("💥 Error sending email:", emailError);
+      
       return new Response(
         JSON.stringify({ 
-          error: "Failed to send email", 
-          details: emailResponse.error,
-          resendResponse: emailResponse
+          error: "Failed to send email via Resend", 
+          message: emailError.message,
+          details: emailError,
+          troubleshooting: {
+            checkApiKey: "Verify RESEND_API_KEY is correct",
+            checkDomain: "Verify domain at https://resend.com/domains",
+            checkFromEmail: "Ensure 'from' email uses verified domain"
+          }
         }),
         {
           status: 500,
@@ -248,20 +313,6 @@ const handler = async (req: Request): Promise<Response> => {
         }
       );
     }
-
-    console.log("✅ Email sent successfully! Email ID:", emailResponse.data?.id);
-
-    return new Response(JSON.stringify({
-      success: true,
-      emailId: emailResponse.data?.id,
-      message: "Task invitation email sent successfully"
-    }), {
-      status: 200,
-      headers: {
-        "Content-Type": "application/json",
-        ...corsHeaders,
-      },
-    });
 
   } catch (error: any) {
     console.error("💥 CRITICAL ERROR in send-task-invitation function:");
