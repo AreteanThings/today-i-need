@@ -26,6 +26,25 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
+    console.log("=== Starting send-task-invitation function ===");
+    
+    // Check if RESEND_API_KEY is available
+    const resendKey = Deno.env.get("RESEND_API_KEY");
+    if (!resendKey) {
+      console.error("RESEND_API_KEY is not configured");
+      return new Response(
+        JSON.stringify({ error: "Email service not configured" }),
+        {
+          status: 500,
+          headers: { "Content-Type": "application/json", ...corsHeaders },
+        }
+      );
+    }
+    console.log("RESEND_API_KEY is configured");
+
+    const requestBody = await req.json();
+    console.log("Request body:", requestBody);
+
     const { 
       recipient_email, 
       task_id, 
@@ -33,42 +52,76 @@ const handler = async (req: Request): Promise<Response> => {
       sender_name,
       task_title,
       assignment_type = "shared"
-    }: TaskInvitationRequest = await req.json();
+    }: TaskInvitationRequest = requestBody;
+
+    if (!recipient_email || !task_id || !assignment_id) {
+      console.error("Missing required fields:", { recipient_email, task_id, assignment_id });
+      return new Response(
+        JSON.stringify({ error: "Missing required fields" }),
+        {
+          status: 400,
+          headers: { "Content-Type": "application/json", ...corsHeaders },
+        }
+      );
+    }
 
     // Initialize Supabase client to fetch missing data
-    const supabase = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-    );
+    const supabaseUrl = Deno.env.get('SUPABASE_URL');
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+    
+    if (!supabaseUrl || !supabaseServiceKey) {
+      console.error("Supabase configuration missing");
+      return new Response(
+        JSON.stringify({ error: "Database service not configured" }),
+        {
+          status: 500,
+          headers: { "Content-Type": "application/json", ...corsHeaders },
+        }
+      );
+    }
+    
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+    console.log("Supabase client initialized");
 
     let finalTaskTitle = task_title;
     let finalSenderName = sender_name;
 
     // Fetch task details if not provided
     if (!finalTaskTitle && task_id) {
-      const { data: task } = await supabase
+      console.log("Fetching task details for task_id:", task_id);
+      const { data: task, error: taskError } = await supabase
         .from('tasks')
         .select('title')
         .eq('id', task_id)
         .single();
       
-      if (task) {
+      if (taskError) {
+        console.error("Error fetching task:", taskError);
+      } else if (task) {
         finalTaskTitle = task.title;
+        console.log("Fetched task title:", finalTaskTitle);
       }
     }
 
     // Fetch sender details if not provided
     if (!finalSenderName && assignment_id) {
-      const { data: assignment } = await supabase
+      console.log("Fetching sender details for assignment_id:", assignment_id);
+      const { data: assignment, error: assignmentError } = await supabase
         .from('task_assignments')
         .select('assigner_id')
         .eq('id', assignment_id)
         .single();
       
-      if (assignment) {
-        const { data: user } = await supabase.auth.admin.getUserById(assignment.assigner_id);
-        if (user?.user?.email) {
-          finalSenderName = user.user.email;
+      if (assignmentError) {
+        console.error("Error fetching assignment:", assignmentError);
+      } else if (assignment) {
+        console.log("Fetched assigner_id:", assignment.assigner_id);
+        const { data: userData, error: userError } = await supabase.auth.admin.getUserById(assignment.assigner_id);
+        if (userError) {
+          console.error("Error fetching user:", userError);
+        } else if (userData?.user?.email) {
+          finalSenderName = userData.user.email;
+          console.log("Fetched sender name:", finalSenderName);
         }
       }
     }
@@ -80,6 +133,14 @@ const handler = async (req: Request): Promise<Response> => {
     const description = assignment_type === 'shared' 
       ? 'This task will appear in both your and the sender\'s Today list.'
       : 'This task has been assigned to you and will appear in your Today list.';
+
+    console.log("Preparing to send email to:", recipient_email);
+    console.log("Email details:", {
+      finalTaskTitle,
+      finalSenderName,
+      assignment_type,
+      acceptUrl
+    });
 
     const emailResponse = await resend.emails.send({
       from: "TaskApp <onboarding@resend.dev>",
@@ -120,6 +181,19 @@ const handler = async (req: Request): Promise<Response> => {
       `,
     });
 
+    console.log("Email send response:", emailResponse);
+
+    if (emailResponse.error) {
+      console.error("Resend API error:", emailResponse.error);
+      return new Response(
+        JSON.stringify({ error: "Failed to send email", details: emailResponse.error }),
+        {
+          status: 500,
+          headers: { "Content-Type": "application/json", ...corsHeaders },
+        }
+      );
+    }
+
     console.log("Task invitation email sent successfully:", emailResponse);
 
     return new Response(JSON.stringify(emailResponse), {
@@ -132,7 +206,11 @@ const handler = async (req: Request): Promise<Response> => {
   } catch (error: any) {
     console.error("Error in send-task-invitation function:", error);
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ 
+        error: "Internal server error", 
+        message: error.message,
+        stack: error.stack 
+      }),
       {
         status: 500,
         headers: { "Content-Type": "application/json", ...corsHeaders },
