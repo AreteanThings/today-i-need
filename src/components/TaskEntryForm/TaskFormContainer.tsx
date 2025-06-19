@@ -6,9 +6,12 @@ import { z } from "zod";
 import { Form } from "@/components/ui/form";
 import { useTasks } from "@/hooks/useTasks";
 import { useToast } from "@/hooks/use-toast";
+import { useTaskSharing } from "@/hooks/useTaskSharing";
 import { Task } from "@/types/task";
+import { TaskSharingData } from "@/types/sharing";
 import TaskFormFields from "./TaskFormFields";
-import FormActions from "./FormActions";
+import TaskFormActions from "./TaskFormActions";
+import TaskSharingModal from "../TaskSharing/TaskSharingModal";
 import CustomRepeatModal from "../CustomRepeatModal";
 
 const taskSchema = z.object({
@@ -33,8 +36,12 @@ interface TaskFormContainerProps {
 
 const TaskFormContainer = ({ editingTask, onCancel, onSuccess }: TaskFormContainerProps) => {
   const { addTask, updateTask, categories } = useTasks();
+  const { shareTask } = useTaskSharing();
   const { toast } = useToast();
   const [isCustomRepeatOpen, setIsCustomRepeatOpen] = useState(false);
+  const [isSharingModalOpen, setIsSharingModalOpen] = useState(false);
+  const [pendingSharingData, setPendingSharingData] = useState<TaskSharingData | null>(null);
+  const [createdTaskId, setCreatedTaskId] = useState<string | null>(null);
 
   const form = useForm<TaskFormData>({
     resolver: zodResolver(taskSchema),
@@ -68,10 +75,19 @@ const TaskFormContainer = ({ editingTask, onCancel, onSuccess }: TaskFormContain
 
       if (editingTask) {
         await updateTask(editingTask.id, taskData);
+        onSuccess?.();
       } else {
-        await addTask(taskData);
+        const newTask = await addTask(taskData);
+        
+        // If there's pending sharing data, share the task
+        if (pendingSharingData && newTask) {
+          setCreatedTaskId(newTask.id);
+          await shareTask(newTask.id, pendingSharingData);
+          setPendingSharingData(null);
+        }
+        
+        onSuccess?.();
       }
-      onSuccess?.();
     } catch (error) {
       console.error('Error saving task:', error);
     }
@@ -84,6 +100,25 @@ const TaskFormContainer = ({ editingTask, onCancel, onSuccess }: TaskFormContain
     setIsCustomRepeatOpen(false);
   };
 
+  const handleOpenSharingModal = () => {
+    setIsSharingModalOpen(true);
+  };
+
+  const handleShare = async (sharingData: TaskSharingData) => {
+    // If we're editing an existing task, share it immediately
+    if (editingTask) {
+      await shareTask(editingTask.id, sharingData);
+      setIsSharingModalOpen(false);
+    } else {
+      // For new tasks, store the sharing data and submit the form
+      setPendingSharingData(sharingData);
+      setIsSharingModalOpen(false);
+      
+      // Trigger form submission
+      form.handleSubmit(onSubmit)();
+    }
+  };
+
   return (
     <>
       <Form {...form}>
@@ -93,8 +128,9 @@ const TaskFormContainer = ({ editingTask, onCancel, onSuccess }: TaskFormContain
             categories={categories} 
             editingTask={editingTask} 
           />
-          <FormActions 
+          <TaskFormActions 
             onCancel={onCancel}
+            onShare={handleOpenSharingModal}
             isEditing={!!editingTask}
             onCustomRepeat={() => setIsCustomRepeatOpen(true)}
             repeatValue={form.watch("repeatValue")}
@@ -107,6 +143,13 @@ const TaskFormContainer = ({ editingTask, onCancel, onSuccess }: TaskFormContain
         onClose={() => setIsCustomRepeatOpen(false)}
         onApply={handleCustomRepeatSave}
         initialRRule={form.getValues("customRrule")}
+      />
+
+      <TaskSharingModal
+        open={isSharingModalOpen}
+        onClose={() => setIsSharingModalOpen(false)}
+        onShare={handleShare}
+        taskTitle={form.watch("title") || "New Task"}
       />
     </>
   );
