@@ -1,9 +1,10 @@
+
 import { useEffect, useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
-import { Auth } from '@/components/Auth';
-import { TodayList } from '@/components/TodayList';
-import { TaskList } from '@/components/TaskList';
-import { TaskEntry } from '@/components/TaskEntry';
+import Auth from '@/components/Auth';
+import TodayList from '@/components/TodayList';
+import TaskList from '@/components/TaskList';
+import TaskEntry from '@/components/TaskEntry';
 import { SharedTasksSection } from '@/components/SharedTasksSection';
 
 const Index = () => {

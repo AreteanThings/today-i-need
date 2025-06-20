@@ -3,7 +3,7 @@ import { useAssignedTasks } from '@/hooks/useAssignedTasks';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Users, UserCheck } from 'lucide-react';
-import { CategoryBadge } from './CategoryBadge';
+import CategoryBadge from './CategoryBadge';
 import { format } from 'date-fns';
 
 export const SharedTasksSection = () => {
