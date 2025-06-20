@@ -11,7 +11,10 @@ export const useAssignedTasks = () => {
   const { user } = useAuth();
 
   const fetchAssignedTasks = async () => {
-    if (!user) return;
+    if (!user) {
+      setAssignedTasks([]);
+      return;
+    }
     
     setLoading(true);
     try {
@@ -25,21 +28,38 @@ export const useAssignedTasks = () => {
         .eq('assignee_user_id', user.id)
         .eq('status', 'accepted');
 
-      if (assignmentsError) throw assignmentsError;
+      if (assignmentsError) {
+        console.error('Error fetching assignments:', assignmentsError);
+        throw assignmentsError;
+      }
 
       // Get completions for these tasks
       const taskIds = assignments?.map(a => a.task_id) || [];
-      const { data: completions, error: completionsError } = await supabase
-        .from('task_completions')
-        .select('*')
-        .in('task_id', taskIds);
+      
+      let completions = [];
+      if (taskIds.length > 0) {
+        const { data: completionsData, error: completionsError } = await supabase
+          .from('task_completions')
+          .select('*')
+          .in('task_id', taskIds);
 
-      if (completionsError) throw completionsError;
+        if (completionsError) {
+          console.error('Error fetching completions:', completionsError);
+          throw completionsError;
+        }
+        
+        completions = completionsData || [];
+      }
 
       // Transform assignments to tasks format
       const tasks: Task[] = (assignments || []).map(assignment => {
         const task = assignment.tasks;
-        const taskCompletions = (completions || [])
+        if (!task) {
+          console.warn('Assignment without task found:', assignment);
+          return null;
+        }
+
+        const taskCompletions = completions
           .filter(c => c.task_id === task.id)
           .map(c => ({
             date: c.completed_date,
@@ -65,11 +85,12 @@ export const useAssignedTasks = () => {
           assignmentType: assignment.assignment_type as 'shared' | 'assigned',
           assignedBy: assignment.assigner_id,
         };
-      });
+      }).filter(Boolean) as Task[];
 
       setAssignedTasks(tasks);
     } catch (error) {
       console.error('Error fetching assigned tasks:', error);
+      setAssignedTasks([]);
     } finally {
       setLoading(false);
     }
@@ -78,6 +99,8 @@ export const useAssignedTasks = () => {
   useEffect(() => {
     if (user) {
       fetchAssignedTasks();
+    } else {
+      setAssignedTasks([]);
     }
   }, [user]);
 
@@ -85,7 +108,8 @@ export const useAssignedTasks = () => {
   useEffect(() => {
     if (!user) return;
 
-    let channel = supabase.channel(`assigned-tasks-${user.id}-${Date.now()}`);
+    const channelName = `assigned-tasks-${user.id}-${Date.now()}`;
+    let channel = supabase.channel(channelName);
     
     channel
       .on(
@@ -96,18 +120,23 @@ export const useAssignedTasks = () => {
           table: 'task_assignments',
           filter: `assignee_user_id=eq.${user.id}`,
         },
-        () => {
-          console.log('Task assignment changed, refetching...');
-          fetchAssignedTasks();
+        (payload) => {
+          console.log('Task assignment changed:', payload);
+          // Use setTimeout to prevent potential blocking
+          setTimeout(() => {
+            fetchAssignedTasks();
+          }, 0);
         }
       )
-      .subscribe();
+      .subscribe((status) => {
+        console.log('Subscription status:', status);
+      });
 
     return () => {
-      console.log('Cleaning up assigned tasks channel');
+      console.log('Cleaning up assigned tasks channel:', channelName);
       supabase.removeChannel(channel);
     };
-  }, [user]);
+  }, [user?.id]); // Use user.id instead of user to prevent unnecessary re-subscriptions
 
   return {
     assignedTasks,

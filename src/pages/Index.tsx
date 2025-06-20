@@ -9,7 +9,7 @@ import { SharedTasksSection } from '@/components/SharedTasksSection';
 import { Task } from '@/types/task';
 
 const Index = () => {
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
   const [mounted, setMounted] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [showTaskEntry, setShowTaskEntry] = useState(false);
@@ -28,8 +28,16 @@ const Index = () => {
     setShowTaskEntry(false);
   };
 
-  if (!mounted) {
-    return null;
+  // Show loading state while auth is initializing
+  if (!mounted || loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-2 text-gray-600">Loading...</p>
+        </div>
+      </div>
+    );
   }
 
   return (
