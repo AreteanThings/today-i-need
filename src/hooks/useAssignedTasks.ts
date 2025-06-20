@@ -62,8 +62,8 @@ export const useAssignedTasks = () => {
           completedDates: taskCompletions,
           customRrule: task.custom_rrule,
           customRruleText: task.custom_rrule_text,
-          // Add assignment info
-          assignmentType: assignment.assignment_type,
+          // Add assignment info with proper type casting
+          assignmentType: assignment.assignment_type as 'shared' | 'assigned',
           assignedBy: assignment.assigner_id,
         };
       });
