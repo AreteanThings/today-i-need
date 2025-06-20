@@ -12,11 +12,14 @@ export const useAssignedTasks = () => {
 
   const fetchAssignedTasks = async () => {
     if (!user) {
+      console.log('useAssignedTasks: No user, clearing tasks');
       setAssignedTasks([]);
       return;
     }
     
+    console.log('useAssignedTasks: Fetching tasks for user:', user.id);
     setLoading(true);
+    
     try {
       // Get tasks assigned to the current user
       const { data: assignments, error: assignmentsError } = await supabase
@@ -29,9 +32,13 @@ export const useAssignedTasks = () => {
         .eq('status', 'accepted');
 
       if (assignmentsError) {
-        console.error('Error fetching assignments:', assignmentsError);
-        throw assignmentsError;
+        console.error('useAssignedTasks: Error fetching assignments:', assignmentsError);
+        setAssignedTasks([]);
+        setLoading(false);
+        return;
       }
+
+      console.log('useAssignedTasks: Assignments fetched:', assignments?.length || 0);
 
       // Get completions for these tasks
       const taskIds = assignments?.map(a => a.task_id) || [];
@@ -44,18 +51,19 @@ export const useAssignedTasks = () => {
           .in('task_id', taskIds);
 
         if (completionsError) {
-          console.error('Error fetching completions:', completionsError);
-          throw completionsError;
+          console.error('useAssignedTasks: Error fetching completions:', completionsError);
+          // Don't fail completely, just continue without completions
+          completions = [];
+        } else {
+          completions = completionsData || [];
         }
-        
-        completions = completionsData || [];
       }
 
       // Transform assignments to tasks format
       const tasks: Task[] = (assignments || []).map(assignment => {
         const task = assignment.tasks;
         if (!task) {
-          console.warn('Assignment without task found:', assignment);
+          console.warn('useAssignedTasks: Assignment without task found:', assignment);
           return null;
         }
 
@@ -81,15 +89,15 @@ export const useAssignedTasks = () => {
           completedDates: taskCompletions,
           customRrule: task.custom_rrule,
           customRruleText: task.custom_rrule_text,
-          // Add assignment info with proper type casting
           assignmentType: assignment.assignment_type as 'shared' | 'assigned',
           assignedBy: assignment.assigner_id,
         };
       }).filter(Boolean) as Task[];
 
+      console.log('useAssignedTasks: Processed tasks:', tasks.length);
       setAssignedTasks(tasks);
     } catch (error) {
-      console.error('Error fetching assigned tasks:', error);
+      console.error('useAssignedTasks: Unexpected error:', error);
       setAssignedTasks([]);
     } finally {
       setLoading(false);
@@ -97,46 +105,62 @@ export const useAssignedTasks = () => {
   };
 
   useEffect(() => {
+    console.log('useAssignedTasks: User changed:', user?.id || 'null');
     if (user) {
       fetchAssignedTasks();
     } else {
       setAssignedTasks([]);
     }
-  }, [user]);
+  }, [user?.id]); // Use user.id to prevent unnecessary re-runs
 
-  // Set up real-time subscription for assignment changes with improved cleanup
+  // Set up real-time subscription for assignment changes
   useEffect(() => {
-    if (!user) return;
+    if (!user?.id) {
+      console.log('useAssignedTasks: No user for subscription');
+      return;
+    }
 
+    console.log('useAssignedTasks: Setting up subscription for user:', user.id);
+    
     const channelName = `assigned-tasks-${user.id}-${Date.now()}`;
     let channel = supabase.channel(channelName);
     
-    channel
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'task_assignments',
-          filter: `assignee_user_id=eq.${user.id}`,
-        },
-        (payload) => {
-          console.log('Task assignment changed:', payload);
-          // Use setTimeout to prevent potential blocking
-          setTimeout(() => {
-            fetchAssignedTasks();
-          }, 0);
-        }
-      )
-      .subscribe((status) => {
-        console.log('Subscription status:', status);
-      });
+    try {
+      channel
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'task_assignments',
+            filter: `assignee_user_id=eq.${user.id}`,
+          },
+          (payload) => {
+            console.log('useAssignedTasks: Assignment changed:', payload);
+            // Use setTimeout to prevent potential blocking
+            setTimeout(() => {
+              fetchAssignedTasks();
+            }, 100);
+          }
+        )
+        .subscribe((status) => {
+          console.log('useAssignedTasks: Subscription status:', status);
+        });
+    } catch (error) {
+      console.error('useAssignedTasks: Error setting up subscription:', error);
+    }
 
     return () => {
-      console.log('Cleaning up assigned tasks channel:', channelName);
-      supabase.removeChannel(channel);
+      console.log('useAssignedTasks: Cleaning up channel:', channelName);
+      try {
+        if (channel) {
+          supabase.removeChannel(channel);
+        }
+      } catch (error) {
+        console.error('useAssignedTasks: Error cleaning up channel:', error);
+      }
     };
-  }, [user?.id]); // Use user.id instead of user to prevent unnecessary re-subscriptions
+  }, [user?.id]);
 
   return {
     assignedTasks,

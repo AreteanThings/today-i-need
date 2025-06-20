@@ -15,21 +15,29 @@ const Index = () => {
   const [showTaskEntry, setShowTaskEntry] = useState(false);
 
   useEffect(() => {
+    console.log('Index: Component mounted');
     setMounted(true);
   }, []);
 
+  useEffect(() => {
+    console.log('Index: User state changed:', user?.id || 'no user', 'loading:', loading);
+  }, [user, loading]);
+
   const handleEditTask = (task: Task) => {
+    console.log('Index: Editing task:', task.id);
     setEditingTask(task);
     setShowTaskEntry(true);
   };
 
   const handleCloseTaskEntry = () => {
+    console.log('Index: Closing task entry');
     setEditingTask(null);
     setShowTaskEntry(false);
   };
 
   // Show loading state while auth is initializing
   if (!mounted || loading) {
+    console.log('Index: Showing loading state, mounted:', mounted, 'loading:', loading);
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
@@ -39,6 +47,8 @@ const Index = () => {
       </div>
     );
   }
+
+  console.log('Index: Rendering main content, user:', user?.id || 'no user');
 
   return (
     <div className="min-h-screen bg-gray-50">

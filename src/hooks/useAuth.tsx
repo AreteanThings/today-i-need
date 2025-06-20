@@ -23,34 +23,42 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   useEffect(() => {
     let mounted = true;
+    console.log('useAuth: Initializing auth');
 
     // Set up auth state listener first
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (event, session) => {
-      console.log('Auth state changed:', event, session?.user?.id);
+      console.log('useAuth: Auth state changed:', event, session?.user?.id || 'no user');
       
       if (mounted) {
-        setSession(session);
-        setUser(session?.user ?? null);
-        setLoading(false);
+        try {
+          setSession(session);
+          setUser(session?.user ?? null);
+          setLoading(false);
+        } catch (error) {
+          console.error('useAuth: Error in auth state change handler:', error);
+          setLoading(false);
+        }
       }
     });
 
     // Then get initial session
     const getInitialSession = async () => {
       try {
+        console.log('useAuth: Getting initial session');
         const { data: { session }, error } = await supabase.auth.getSession();
         if (error) {
-          console.error('Error getting initial session:', error);
+          console.error('useAuth: Error getting initial session:', error);
         }
         if (mounted) {
           setSession(session);
           setUser(session?.user ?? null);
           setLoading(false);
+          console.log('useAuth: Initial session set:', session?.user?.id || 'no user');
         }
       } catch (error) {
-        console.error('Unexpected error getting initial session:', error);
+        console.error('useAuth: Unexpected error getting initial session:', error);
         if (mounted) {
           setLoading(false);
         }
@@ -60,6 +68,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     getInitialSession();
 
     return () => {
+      console.log('useAuth: Cleaning up auth');
       mounted = false;
       subscription.unsubscribe();
     };
@@ -67,19 +76,21 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const signIn = async (email: string, password: string) => {
     try {
+      console.log('useAuth: Attempting sign in for:', email);
       const { error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
 
       if (error) {
-        console.error('Sign in error:', error);
+        console.error('useAuth: Sign in error:', error);
         toast({
           title: "Sign In Failed",
           description: error.message,
           variant: "destructive",
         });
       } else {
+        console.log('useAuth: Sign in successful');
         toast({
           title: "Welcome back!",
           description: "You have been signed in successfully.",
@@ -88,7 +99,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
       return { error };
     } catch (error) {
-      console.error('Unexpected sign in error:', error);
+      console.error('useAuth: Unexpected sign in error:', error);
       const authError = error as AuthError;
       toast({
         title: "Sign In Failed",
