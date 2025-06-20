@@ -1,4 +1,3 @@
-
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { Resend } from "npm:resend@2.0.0";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.50.0';
@@ -34,12 +33,14 @@ const handler = async (req: Request): Promise<Response> => {
     const resendKey = Deno.env.get("RESEND_API_KEY");
     const supabaseUrl = Deno.env.get('SUPABASE_URL');
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+    const fromDomain = Deno.env.get('FROM_EMAIL_DOMAIN') || 'yourdomain.com';
     
     console.log("Environment check:");
     console.log("- RESEND_API_KEY exists:", !!resendKey);
     console.log("- RESEND_API_KEY length:", resendKey?.length || 0);
     console.log("- SUPABASE_URL exists:", !!supabaseUrl);
     console.log("- SUPABASE_SERVICE_ROLE_KEY exists:", !!supabaseServiceKey);
+    console.log("- FROM_EMAIL_DOMAIN:", fromDomain);
     
     if (!resendKey) {
       console.error("❌ RESEND_API_KEY is missing");
@@ -184,9 +185,8 @@ const handler = async (req: Request): Promise<Response> => {
       ? 'This task will appear in both your and the sender\'s Today list.'
       : 'This task has been assigned to you and will appear in your Today list.';
 
-    // IMPORTANT: Change this to your verified domain!
-    // For now using the test domain - you MUST replace this with your verified domain
-    const fromEmail = "TaskApp <hello@yourdomain.com>"; // ← REPLACE WITH YOUR VERIFIED DOMAIN
+    // Use environment variable for domain, with fallback
+    const fromEmail = `TaskApp <hello@${fromDomain}>`;
     
     const emailData = {
       from: fromEmail,
@@ -228,7 +228,7 @@ const handler = async (req: Request): Promise<Response> => {
     };
 
     console.log("📧 Email payload prepared:");
-    console.log("- From:", emailData.from);
+    console.log("- From:", fromEmail);
     console.log("- To:", emailData.to);
     console.log("- Subject:", emailData.subject);
     console.log("- Accept URL:", acceptUrl);
