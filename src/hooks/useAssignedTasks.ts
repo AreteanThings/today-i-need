@@ -3,7 +3,6 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
 import { Task } from '@/types/task';
-import { TaskAssignment } from '@/types/sharing';
 import { asRepeatValue } from './useTasks.utils';
 
 export const useAssignedTasks = () => {
@@ -82,12 +81,13 @@ export const useAssignedTasks = () => {
     }
   }, [user]);
 
-  // Set up real-time subscription for assignment changes
+  // Set up real-time subscription for assignment changes with improved cleanup
   useEffect(() => {
     if (!user) return;
 
-    const channel = supabase
-      .channel('assigned-tasks-changes')
+    let channel = supabase.channel(`assigned-tasks-${user.id}-${Date.now()}`);
+    
+    channel
       .on(
         'postgres_changes',
         {
@@ -97,12 +97,14 @@ export const useAssignedTasks = () => {
           filter: `assignee_user_id=eq.${user.id}`,
         },
         () => {
+          console.log('Task assignment changed, refetching...');
           fetchAssignedTasks();
         }
       )
       .subscribe();
 
     return () => {
+      console.log('Cleaning up assigned tasks channel');
       supabase.removeChannel(channel);
     };
   }, [user]);
