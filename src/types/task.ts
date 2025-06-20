@@ -13,6 +13,4 @@ export interface Task {
   completedDates: { date: string; completedAt: string; completedBy: string }[];
   customRrule?: string;
   customRruleText?: string; // Human-readable text for custom rules
-  assignmentType?: 'shared' | 'assigned'; // Optional for assigned tasks
-  assignedBy?: string; // Optional for assigned tasks
 }

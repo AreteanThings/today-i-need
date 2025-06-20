@@ -9,67 +9,6 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      invitation_emails: {
-        Row: {
-          accepted_at: string | null
-          assignment_id: string | null
-          connection_id: string | null
-          email_type: string
-          id: string
-          opened_at: string | null
-          recipient_email: string
-          sender_id: string
-          sent_at: string | null
-          task_id: string | null
-        }
-        Insert: {
-          accepted_at?: string | null
-          assignment_id?: string | null
-          connection_id?: string | null
-          email_type: string
-          id?: string
-          opened_at?: string | null
-          recipient_email: string
-          sender_id: string
-          sent_at?: string | null
-          task_id?: string | null
-        }
-        Update: {
-          accepted_at?: string | null
-          assignment_id?: string | null
-          connection_id?: string | null
-          email_type?: string
-          id?: string
-          opened_at?: string | null
-          recipient_email?: string
-          sender_id?: string
-          sent_at?: string | null
-          task_id?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "invitation_emails_assignment_id_fkey"
-            columns: ["assignment_id"]
-            isOneToOne: false
-            referencedRelation: "task_assignments"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "invitation_emails_connection_id_fkey"
-            columns: ["connection_id"]
-            isOneToOne: false
-            referencedRelation: "user_connections"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "invitation_emails_task_id_fkey"
-            columns: ["task_id"]
-            isOneToOne: false
-            referencedRelation: "tasks"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       shared_contacts: {
         Row: {
           contact_email: string
@@ -90,50 +29,6 @@ export type Database = {
           owner_id?: string
         }
         Relationships: []
-      }
-      task_assignments: {
-        Row: {
-          accepted_at: string | null
-          assignee_email: string
-          assignee_user_id: string | null
-          assigner_id: string
-          assignment_type: string
-          created_at: string | null
-          id: string
-          status: string | null
-          task_id: string
-        }
-        Insert: {
-          accepted_at?: string | null
-          assignee_email: string
-          assignee_user_id?: string | null
-          assigner_id: string
-          assignment_type: string
-          created_at?: string | null
-          id?: string
-          status?: string | null
-          task_id: string
-        }
-        Update: {
-          accepted_at?: string | null
-          assignee_email?: string
-          assignee_user_id?: string | null
-          assigner_id?: string
-          assignment_type?: string
-          created_at?: string | null
-          id?: string
-          status?: string | null
-          task_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "task_assignments_task_id_fkey"
-            columns: ["task_id"]
-            isOneToOne: false
-            referencedRelation: "tasks"
-            referencedColumns: ["id"]
-          },
-        ]
       }
       task_completions: {
         Row: {
@@ -166,30 +61,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
-      }
-      task_shares: {
-        Row: {
-          contact_email: string
-          created_at: string
-          id: string
-          owner_id: string
-          task_id: string
-        }
-        Insert: {
-          contact_email: string
-          created_at?: string
-          id?: string
-          owner_id: string
-          task_id: string
-        }
-        Update: {
-          contact_email?: string
-          created_at?: string
-          id?: string
-          owner_id?: string
-          task_id?: string
-        }
-        Relationships: []
       }
       tasks: {
         Row: {
@@ -239,36 +110,6 @@ export type Database = {
           title?: string
           updated_at?: string | null
           user_id?: string
-        }
-        Relationships: []
-      }
-      user_connections: {
-        Row: {
-          accepted_at: string | null
-          created_at: string | null
-          id: string
-          requester_id: string
-          status: string | null
-          target_email: string
-          target_user_id: string | null
-        }
-        Insert: {
-          accepted_at?: string | null
-          created_at?: string | null
-          id?: string
-          requester_id: string
-          status?: string | null
-          target_email: string
-          target_user_id?: string | null
-        }
-        Update: {
-          accepted_at?: string | null
-          created_at?: string | null
-          id?: string
-          requester_id?: string
-          status?: string | null
-          target_email?: string
-          target_user_id?: string | null
         }
         Relationships: []
       }

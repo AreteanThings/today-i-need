@@ -22,170 +22,87 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const { toast } = useToast();
 
   useEffect(() => {
-    let mounted = true;
-    console.log('useAuth: Initializing auth');
-
-    // Set up auth state listener first
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (event, session) => {
-      console.log('useAuth: Auth state changed:', event, session?.user?.id || 'no user');
-      
-      if (mounted) {
-        try {
-          setSession(session);
-          setUser(session?.user ?? null);
-          
-          // Only set loading to false after we've processed the auth state
-          if (event !== 'INITIAL_SESSION') {
-            setLoading(false);
-          }
-        } catch (error) {
-          console.error('useAuth: Error in auth state change handler:', error);
-        }
-      }
+    // Get initial session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      setUser(session?.user ?? null);
+      setLoading(false);
     });
 
-    // Then get initial session
-    const getInitialSession = async () => {
-      try {
-        console.log('useAuth: Getting initial session');
-        const { data: { session }, error } = await supabase.auth.getSession();
-        if (error) {
-          console.error('useAuth: Error getting initial session:', error);
-        }
-        if (mounted) {
-          setSession(session);
-          setUser(session?.user ?? null);
-          setLoading(false);
-          console.log('useAuth: Initial session set:', session?.user?.id || 'no user');
-        }
-      } catch (error) {
-        console.error('useAuth: Unexpected error getting initial session:', error);
-        if (mounted) {
-          setLoading(false);
-        }
-      }
-    };
+    // Listen for auth changes
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+      setUser(session?.user ?? null);
+      setLoading(false);
+    });
 
-    getInitialSession();
-
-    return () => {
-      console.log('useAuth: Cleaning up auth');
-      mounted = false;
-      subscription.unsubscribe();
-    };
+    return () => subscription.unsubscribe();
   }, []);
 
   const signIn = async (email: string, password: string) => {
-    try {
-      console.log('useAuth: Attempting sign in for:', email);
-      setLoading(true);
-      
-      const { error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
+    const { error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
 
-      if (error) {
-        console.error('useAuth: Sign in error:', error);
-        toast({
-          title: "Sign In Failed",
-          description: error.message || "Unable to sign in. Please check your credentials.",
-          variant: "destructive",
-        });
-      } else {
-        console.log('useAuth: Sign in successful');
-        toast({
-          title: "Welcome back!",
-          description: "You have been signed in successfully.",
-        });
-      }
-
-      return { error };
-    } catch (error) {
-      console.error('useAuth: Unexpected sign in error:', error);
-      const authError = error as AuthError;
+    if (error) {
       toast({
         title: "Sign In Failed",
-        description: "An unexpected error occurred. Please try again.",
+        description: error.message,
         variant: "destructive",
       });
-      return { error: authError };
-    } finally {
-      setLoading(false);
+    } else {
+      toast({
+        title: "Welcome back!",
+        description: "You have been signed in successfully.",
+      });
     }
+
+    return { error };
   };
 
   const signUp = async (email: string, password: string, fullName?: string) => {
-    try {
-      setLoading(true);
-      const { error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          data: {
-            full_name: fullName,
-          },
-          emailRedirectTo: `${window.location.origin}/`,
+    const { error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: {
+          full_name: fullName,
         },
-      });
+      },
+    });
 
-      if (error) {
-        console.error('Sign up error:', error);
-        toast({
-          title: "Sign Up Failed",
-          description: error.message,
-          variant: "destructive",
-        });
-      } else {
-        toast({
-          title: "Account Created!",
-          description: "Please check your email to verify your account.",
-        });
-      }
-
-      return { error };
-    } catch (error) {
-      console.error('Unexpected sign up error:', error);
-      const authError = error as AuthError;
+    if (error) {
       toast({
         title: "Sign Up Failed",
-        description: "An unexpected error occurred. Please try again.",
+        description: error.message,
         variant: "destructive",
       });
-      return { error: authError };
-    } finally {
-      setLoading(false);
+    } else {
+      toast({
+        title: "Account Created!",
+        description: "Please check your email to verify your account.",
+      });
     }
+
+    return { error };
   };
 
   const signOut = async () => {
-    try {
-      setLoading(true);
-      const { error } = await supabase.auth.signOut();
-      if (error) {
-        console.error('Sign out error:', error);
-        toast({
-          title: "Sign Out Failed",
-          description: error.message,
-          variant: "destructive",
-        });
-      } else {
-        toast({
-          title: "Signed Out",
-          description: "You have been signed out successfully.",
-        });
-      }
-    } catch (error) {
-      console.error('Unexpected sign out error:', error);
+    const { error } = await supabase.auth.signOut();
+    if (error) {
       toast({
         title: "Sign Out Failed",
-        description: "An unexpected error occurred.",
+        description: error.message,
         variant: "destructive",
       });
-    } finally {
-      setLoading(false);
+    } else {
+      toast({
+        title: "Signed Out",
+        description: "You have been signed out successfully.",
+      });
     }
   };
 

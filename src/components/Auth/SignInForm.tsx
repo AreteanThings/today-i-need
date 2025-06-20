@@ -6,7 +6,6 @@ import { Label } from "@/components/ui/label";
 import { CardContent, CardFooter } from "@/components/ui/card";
 import { Loader2 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
-import { Alert, AlertDescription } from "@/components/ui/alert";
 
 interface SignInFormProps {
   onForgotPassword: () => void;
@@ -15,35 +14,15 @@ interface SignInFormProps {
 const SignInForm = ({ onForgotPassword }: SignInFormProps) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [formLoading, setFormLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const { signIn, loading } = useAuth();
+  const [loading, setLoading] = useState(false);
+  const { signIn } = useAuth();
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (!email || !password) {
-      setError('Please enter both email and password');
-      return;
-    }
-
-    setFormLoading(true);
-    setError(null);
-    
-    try {
-      const { error: signInError } = await signIn(email, password);
-      if (signInError) {
-        setError(signInError.message || 'Failed to sign in');
-      }
-    } catch (err) {
-      console.error('Unexpected sign in error:', err);
-      setError('An unexpected error occurred. Please try again.');
-    } finally {
-      setFormLoading(false);
-    }
+    setLoading(true);
+    await signIn(email, password);
+    setLoading(false);
   };
-
-  const isLoading = formLoading || loading;
 
   return (
     <form onSubmit={handleSignIn} autoComplete="new-password">
@@ -52,12 +31,6 @@ const SignInForm = ({ onForgotPassword }: SignInFormProps) => {
       <input type="password" style={{ display: 'none' }} />
       
       <CardContent className="space-y-4">
-        {error && (
-          <Alert variant="destructive">
-            <AlertDescription>{error}</AlertDescription>
-          </Alert>
-        )}
-        
         <div className="space-y-2">
           <Label htmlFor="signin-email">Email</Label>
           <Input
@@ -68,7 +41,6 @@ const SignInForm = ({ onForgotPassword }: SignInFormProps) => {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
-            disabled={isLoading}
             autoComplete="new-password"
             data-form-type="other"
             data-lpignore="true"
@@ -85,7 +57,6 @@ const SignInForm = ({ onForgotPassword }: SignInFormProps) => {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
-            disabled={isLoading}
             autoComplete="new-password"
             data-form-type="other"
             data-lpignore="true"
@@ -97,7 +68,6 @@ const SignInForm = ({ onForgotPassword }: SignInFormProps) => {
             type="button"
             className="text-xs text-blue-700 hover:underline"
             onClick={onForgotPassword}
-            disabled={isLoading}
           >
             Forgot Password?
           </button>
@@ -107,9 +77,9 @@ const SignInForm = ({ onForgotPassword }: SignInFormProps) => {
         <Button 
           type="submit" 
           className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800"
-          disabled={isLoading}
+          disabled={loading}
         >
-          {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+          {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
           Sign In
         </Button>
       </CardFooter>

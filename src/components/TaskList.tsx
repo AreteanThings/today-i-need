@@ -4,7 +4,6 @@ import { useTasks } from "@/hooks/useTasks";
 import { useToast } from "@/hooks/use-toast";
 import { Task } from "@/types/task";
 import CategorySection from "./TaskList/CategorySection";
-import TaskHistoryModal from "./TaskHistory/TaskHistoryModal";
 
 interface TaskListProps {
   onEditTask: (task: Task) => void;
@@ -13,8 +12,6 @@ interface TaskListProps {
 const TaskList = ({ onEditTask }: TaskListProps) => {
   const { tasks, deleteTask } = useTasks();
   const { toast } = useToast();
-  const [historyTask, setHistoryTask] = useState<Task | null>(null);
-  const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false);
 
   const activeTasks = tasks.filter(task => task.isActive);
   console.log("TaskList - All tasks:", tasks);
@@ -28,16 +25,6 @@ const TaskList = ({ onEditTask }: TaskListProps) => {
         ? "Task has been removed for everyone." 
         : "Task has been deleted.",
     });
-  };
-
-  const handleViewHistory = (task: Task) => {
-    setHistoryTask(task);
-    setIsHistoryModalOpen(true);
-  };
-
-  const handleCloseHistory = () => {
-    setIsHistoryModalOpen(false);
-    setHistoryTask(null);
   };
 
   // Group tasks by category
@@ -77,16 +64,9 @@ const TaskList = ({ onEditTask }: TaskListProps) => {
               tasks={categoryTasks}
               onEditTask={onEditTask}
               onDeleteTask={handleDelete}
-              onViewHistory={handleViewHistory}
             />
           ))
       )}
-
-      <TaskHistoryModal
-        task={historyTask}
-        isOpen={isHistoryModalOpen}
-        onClose={handleCloseHistory}
-      />
     </div>
   );
 };

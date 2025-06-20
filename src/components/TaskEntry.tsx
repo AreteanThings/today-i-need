@@ -14,11 +14,6 @@ const TaskEntry = ({ onClose, editingTask }: TaskEntryProps) => {
     onClose();
   }, [onClose]);
 
-  // Helper to handle successful task creation/update
-  const handleSuccess = useCallback(() => {
-    onClose();
-  }, [onClose]);
-
   return (
     <div className="min-h-screen bg-background">
       <div className="max-w-md mx-auto">
@@ -26,11 +21,7 @@ const TaskEntry = ({ onClose, editingTask }: TaskEntryProps) => {
         <TaskEntryHeader onCancel={handleCancel} editingTask={editingTask} />
         {/* Form */}
         <div className="p-4 space-y-6">
-          <TaskEntryForm 
-            onCancel={handleCancel} 
-            editingTask={editingTask}
-            onSuccess={handleSuccess}
-          />
+          <TaskEntryForm onClose={handleCancel} editingTask={editingTask} />
         </div>
       </div>
     </div>

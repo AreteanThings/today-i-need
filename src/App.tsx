@@ -10,7 +10,6 @@ import { ErrorBoundary } from "@/components/ErrorBoundary";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import ResetPassword from "@/pages/ResetPassword";
-import AcceptInvitation from "@/pages/AcceptInvitation";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -38,7 +37,6 @@ const App = () => (
               <Routes>
                 <Route path="/" element={<Index />} />
                 <Route path="/reset-password" element={<ResetPassword />} />
-                <Route path="/accept-invitation" element={<AcceptInvitation />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </BrowserRouter>

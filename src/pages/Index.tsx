@@ -1,85 +1,106 @@
 
-import { useEffect, useState } from 'react';
-import { useAuth } from '@/hooks/useAuth';
-import Auth from '@/components/Auth';
-import TodayList from '@/components/TodayList';
-import TaskList from '@/components/TaskList';
-import TaskEntry from '@/components/TaskEntry';
-import { SharedTasksSection } from '@/components/SharedTasksSection';
-import { Task } from '@/types/task';
+import { useState, useEffect } from "react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Button } from "@/components/ui/button";
+import { Plus, List, Calendar, Info } from "lucide-react";
+import TaskEntry from "@/components/TaskEntry";
+import TaskList from "@/components/TaskList";
+import TodayList from "@/components/TodayList";
+import About from "@/components/About";
+import Auth from "@/components/Auth";
+import { useAuth } from "@/hooks/useAuth";
 
 const Index = () => {
-  const { user, loading } = useAuth();
-  const [mounted, setMounted] = useState(false);
-  const [editingTask, setEditingTask] = useState<Task | null>(null);
+  const [activeTab, setActiveTab] = useState("today");
   const [showTaskEntry, setShowTaskEntry] = useState(false);
+  const [editingTask, setEditingTask] = useState(null);
+  const { user, loading, signOut } = useAuth();
 
-  useEffect(() => {
-    console.log('Index: Component mounted');
-    setMounted(true);
-  }, []);
-
-  useEffect(() => {
-    console.log('Index: User state changed:', user?.id || 'no user', 'loading:', loading);
-  }, [user, loading]);
-
-  const handleEditTask = (task: Task) => {
-    console.log('Index: Editing task:', task.id);
+  const handleEditTask = (task: any) => {
     setEditingTask(task);
     setShowTaskEntry(true);
   };
 
   const handleCloseTaskEntry = () => {
-    console.log('Index: Closing task entry');
-    setEditingTask(null);
     setShowTaskEntry(false);
+    setEditingTask(null);
   };
 
-  // Show loading state while auth is initializing
-  if (!mounted || loading) {
-    console.log('Index: Showing loading state, mounted:', mounted, 'loading:', loading);
+  // Show loading state
+  if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-2 text-gray-600">Loading...</p>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Loading...</p>
         </div>
       </div>
     );
   }
 
-  console.log('Index: Rendering main content, user:', user?.id || 'no user');
+  // Show auth screen if not authenticated - completely separate render
+  if (!user) {
+    return <Auth />;
+  }
+
+  // Only render the main app when authenticated - Auth component is completely unmounted
+  if (showTaskEntry) {
+    return (
+      <TaskEntry
+        onClose={handleCloseTaskEntry}
+        editingTask={editingTask}
+      />
+    );
+  }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {user ? (
-        <div className="container mx-auto px-4 py-8">
-          <div className="flex flex-col lg:flex-row gap-8">
-            <div className="lg:w-1/2">
-              <TodayList onEditTask={handleEditTask} />
-            </div>
-            <div className="lg:w-1/2 space-y-8">
-              <SharedTasksSection />
-              {showTaskEntry ? (
-                <TaskEntry 
-                  onClose={handleCloseTaskEntry}
-                  editingTask={editingTask}
-                />
-              ) : (
-                <button 
-                  onClick={() => setShowTaskEntry(true)}
-                  className="w-full p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-gray-400 transition-colors"
-                >
-                  + Add New Task
-                </button>
-              )}
-              <TaskList onEditTask={handleEditTask} />
-            </div>
-          </div>
+    <div className="min-h-screen bg-background">
+      <div className="max-w-md mx-auto">
+        {/* Header */}
+        <div className="header-gradient text-white p-4 flex justify-between items-center h-16">
+          <h1 className="text-2xl font-bold">Today I Need</h1>
+          {activeTab !== "about" && (
+            <Button
+              size="sm"
+              variant="secondary"
+              onClick={() => setShowTaskEntry(true)}
+            >
+              <Plus className="h-4 w-4 mr-1" />
+              Add Task
+            </Button>
+          )}
         </div>
-      ) : (
-        <Auth />
-      )}
+
+        {/* Navigation */}
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <TabsList className="grid grid-cols-3 w-full">
+            <TabsTrigger value="today" className="flex items-center gap-1">
+              <Calendar className="h-4 w-4" />
+              Today
+            </TabsTrigger>
+            <TabsTrigger value="tasks" className="flex items-center gap-1">
+              <List className="h-4 w-4" />
+              Tasks
+            </TabsTrigger>
+            <TabsTrigger value="about" className="flex items-center gap-1">
+              <Info className="h-4 w-4" />
+              About
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="today" className="mt-0">
+            <TodayList onEditTask={handleEditTask} />
+          </TabsContent>
+
+          <TabsContent value="tasks" className="mt-0">
+            <TaskList onEditTask={handleEditTask} />
+          </TabsContent>
+
+          <TabsContent value="about" className="mt-0">
+            <About />
+          </TabsContent>
+        </Tabs>
+      </div>
     </div>
   );
 };

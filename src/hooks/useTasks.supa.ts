@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { Task } from "@/types/task";
 import { asRepeatValue } from "./useTasks.utils";
@@ -55,13 +54,13 @@ export const insertTaskToSupabase = async (taskData: Omit<Task, "id" | "isActive
       user_id: userId,
       category: taskData.category,
       title: taskData.title,
-      subtitle: taskData.subtitle || null,
+      subtitle: taskData.subtitle,
       start_date: taskData.startDate,
-      end_date: taskData.endDate || null, // Convert empty string to null
+      end_date: taskData.endDate,
       repeat_value: taskData.repeatValue,
       is_shared: taskData.isShared,
-      custom_rrule: taskData.customRrule || null,
-      custom_rrule_text: taskData.customRruleText || null,
+      custom_rrule: taskData.customRrule,
+      custom_rrule_text: taskData.customRruleText,
     })
     .select()
     .single();
@@ -76,13 +75,13 @@ export const updateTaskInSupabase = async (id: string, updates: Partial<Task> & 
     .update({
       category: updates.category,
       title: updates.title,
-      subtitle: updates.subtitle || null,
+      subtitle: updates.subtitle,
       start_date: updates.startDate,
-      end_date: updates.endDate || null, // Convert empty string to null
+      end_date: updates.endDate,
       repeat_value: updates.repeatValue,
       is_shared: updates.isShared,
-      custom_rrule: updates.customRrule || null,
-      custom_rrule_text: updates.customRruleText || null,
+      custom_rrule: updates.customRrule,
+      custom_rrule_text: updates.customRruleText,
       updated_at: new Date().toISOString(),
     })
     .eq('id', id)

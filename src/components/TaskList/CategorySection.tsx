@@ -10,10 +10,9 @@ interface CategorySectionProps {
   tasks: Task[];
   onEditTask: (task: Task) => void;
   onDeleteTask: (task: Task) => void;
-  onViewHistory: (task: Task) => void;
 }
 
-const CategorySection = ({ category, tasks, onEditTask, onDeleteTask, onViewHistory }: CategorySectionProps) => {
+const CategorySection = ({ category, tasks, onEditTask, onDeleteTask }: CategorySectionProps) => {
   const sortedTasks = sortTasksByPriority(tasks);
 
   return (
@@ -31,7 +30,6 @@ const CategorySection = ({ category, tasks, onEditTask, onDeleteTask, onViewHist
             task={task}
             onEdit={onEditTask}
             onDelete={onDeleteTask}
-            onViewHistory={onViewHistory}
           />
         ))}
       </div>
