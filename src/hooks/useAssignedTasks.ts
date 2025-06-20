@@ -8,17 +8,20 @@ import { asRepeatValue } from './useTasks.utils';
 export const useAssignedTasks = () => {
   const [assignedTasks, setAssignedTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const { user } = useAuth();
 
   const fetchAssignedTasks = async () => {
     if (!user) {
       console.log('useAssignedTasks: No user, clearing tasks');
       setAssignedTasks([]);
+      setError(null);
       return;
     }
     
     console.log('useAssignedTasks: Fetching tasks for user:', user.id);
     setLoading(true);
+    setError(null);
     
     try {
       // Get tasks assigned to the current user
@@ -33,6 +36,7 @@ export const useAssignedTasks = () => {
 
       if (assignmentsError) {
         console.error('useAssignedTasks: Error fetching assignments:', assignmentsError);
+        setError('Failed to load assigned tasks');
         setAssignedTasks([]);
         setLoading(false);
         return;
@@ -98,6 +102,7 @@ export const useAssignedTasks = () => {
       setAssignedTasks(tasks);
     } catch (error) {
       console.error('useAssignedTasks: Unexpected error:', error);
+      setError('An unexpected error occurred while loading tasks');
       setAssignedTasks([]);
     } finally {
       setLoading(false);
@@ -107,11 +112,16 @@ export const useAssignedTasks = () => {
   useEffect(() => {
     console.log('useAssignedTasks: User changed:', user?.id || 'null');
     if (user) {
-      fetchAssignedTasks();
+      // Add a small delay to let auth settle
+      const timeoutId = setTimeout(() => {
+        fetchAssignedTasks();
+      }, 100);
+      return () => clearTimeout(timeoutId);
     } else {
       setAssignedTasks([]);
+      setError(null);
     }
-  }, [user?.id]); // Use user.id to prevent unnecessary re-runs
+  }, [user?.id]);
 
   // Set up real-time subscription for assignment changes
   useEffect(() => {
@@ -165,6 +175,7 @@ export const useAssignedTasks = () => {
   return {
     assignedTasks,
     loading,
+    error,
     refetch: fetchAssignedTasks,
   };
 };

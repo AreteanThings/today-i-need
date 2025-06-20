@@ -35,10 +35,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         try {
           setSession(session);
           setUser(session?.user ?? null);
-          setLoading(false);
+          
+          // Only set loading to false after we've processed the auth state
+          if (event !== 'INITIAL_SESSION') {
+            setLoading(false);
+          }
         } catch (error) {
           console.error('useAuth: Error in auth state change handler:', error);
-          setLoading(false);
         }
       }
     });
@@ -77,6 +80,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const signIn = async (email: string, password: string) => {
     try {
       console.log('useAuth: Attempting sign in for:', email);
+      setLoading(true);
+      
       const { error } = await supabase.auth.signInWithPassword({
         email,
         password,
@@ -86,7 +91,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         console.error('useAuth: Sign in error:', error);
         toast({
           title: "Sign In Failed",
-          description: error.message,
+          description: error.message || "Unable to sign in. Please check your credentials.",
           variant: "destructive",
         });
       } else {
@@ -107,11 +112,14 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         variant: "destructive",
       });
       return { error: authError };
+    } finally {
+      setLoading(false);
     }
   };
 
   const signUp = async (email: string, password: string, fullName?: string) => {
     try {
+      setLoading(true);
       const { error } = await supabase.auth.signUp({
         email,
         password,
@@ -147,11 +155,14 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         variant: "destructive",
       });
       return { error: authError };
+    } finally {
+      setLoading(false);
     }
   };
 
   const signOut = async () => {
     try {
+      setLoading(true);
       const { error } = await supabase.auth.signOut();
       if (error) {
         console.error('Sign out error:', error);
@@ -173,6 +184,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         description: "An unexpected error occurred.",
         variant: "destructive",
       });
+    } finally {
+      setLoading(false);
     }
   };
 
